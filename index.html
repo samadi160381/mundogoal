@@ -598,6 +598,40 @@
         <div id="detailTabContent" style="padding:18px;"></div>
       </div>
     </div>
+
+    <!-- ================= LEAGUE VIEW (all matches for one league) ================= -->
+    <div id="leagueView" style="display:none;">
+      <div class="card cardpad" style="margin-bottom:20px; display:flex; align-items:center; gap:8px; cursor:pointer;" id="leagueViewBack">
+        <span>&#8592;</span> <span style="font-size:13.5px; font-weight:600; color:var(--muted);">Back</span>
+      </div>
+      <div class="card cardpad" style="margin-bottom:20px;">
+        <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;">
+          <div class="display" style="font-size:20px; font-weight:700;" id="leagueViewTitle">League</div>
+          <div style="font-size:12.5px; color:var(--muted);" id="leagueCounts"></div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom:20px;">
+        <div class="newshead" style="padding-bottom:0;">
+          <div class="sectiontitle" style="margin:0;">Live Now</div>
+        </div>
+        <div id="leagueLiveList"></div>
+      </div>
+
+      <div class="card" style="margin-bottom:20px;">
+        <div class="newshead" style="padding-bottom:0;">
+          <div class="sectiontitle" style="margin:0;">Upcoming</div>
+        </div>
+        <div id="leagueUpcomingList"></div>
+      </div>
+
+      <div class="card">
+        <div class="newshead" style="padding-bottom:0;">
+          <div class="sectiontitle" style="margin:0;">Recent Results</div>
+        </div>
+        <div id="leagueRecentList"></div>
+      </div>
+    </div>
   </div>
 
   <!-- RIGHT COLUMN -->
@@ -629,12 +663,18 @@
 
 <script>
   // ---- data ----
-  const leagues = [
-    {name:"Meridian Prime", count:12, color:"#4E8CFF"},
-    {name:"Costera Liga", count:8, color:"#F5A623"},
-    {name:"Meridian Cup", count:15, color:"#33D17E"},
-    {name:"Serie Boreal", count:10, color:"#B98CFF"},
-    {name:"Nordfeld Liga", count:9, color:"#FF6B6B"},
+  // Real leagues we pull live/scheduled/recent data for (ESPN public scoreboard)
+  const LEAGUES = [
+    {sport:'soccer',     league:'fifa.world',     label:'FIFA World Cup',   crestA:'#1c3a2b', crestB:'#3a1c1c'},
+    {sport:'soccer',     league:'uefa.champions', label:'Champions League', crestA:'#12203a', crestB:'#2b123a'},
+    {sport:'soccer',     league:'eng.1',          label:'Premier League',   crestA:'#1c2b4a', crestB:'#3a1414'},
+    {sport:'soccer',     league:'esp.1',          label:'La Liga',          crestA:'#3a1414', crestB:'#f5a62333'},
+    {sport:'soccer',     league:'ita.1',          label:'Serie A',          crestA:'#123a2b', crestB:'#3a3a12'},
+    {sport:'soccer',     league:'ger.1',          label:'Bundesliga',       crestA:'#2b1c3a', crestB:'#3a1414'},
+    {sport:'soccer',     league:'fra.1',          label:'Ligue 1',          crestA:'#12203a', crestB:'#3a1414'},
+    {sport:'basketball', league:'nba',            label:'NBA',              crestA:'#123a2b', crestB:'#3a2b12'},
+    {sport:'baseball',   league:'mlb',             label:'MLB',             crestA:'#2b1c3a', crestB:'#123030'},
+    {sport:'hockey',     league:'nhl',            label:'NHL',              crestA:'#3a3a12', crestB:'#122a3a'},
   ];
   const popular = [
     {icon:"&#127942;", name:"World Federation Cup"},
@@ -710,14 +750,55 @@
     });
   }
 
+  // ---- live minute ticker: keeps the clock counting up between 60s API polls ----
+  function parseSoccerMinute(clockStr){
+    if(!clockStr) return null;
+    const m = /^(\d+)(?:\+(\d+))?'$/.exec(clockStr.trim());
+    if(!m) return null;
+    return parseInt(m[1],10) + (m[2] ? parseInt(m[2],10) : 0);
+  }
+  function setLiveMinuteEl(el, clockStr){
+    if(!el) return;
+    const base = parseSoccerMinute(clockStr);
+    if(base === null){
+      // not a parseable running clock (HT, quarter, "Final", tip-off time, etc.) — show as-is
+      el.textContent = clockStr || '';
+      delete el.dataset.minBase;
+      delete el.dataset.minBaseat;
+      return;
+    }
+    el.dataset.minBase = base;
+    el.dataset.minBaseat = Date.now();
+    el.textContent = base + "'";
+  }
+  function tickLiveMinutes(){
+    document.querySelectorAll('[data-min-base]').forEach(el=>{
+      const base = parseInt(el.dataset.minBase, 10);
+      const baseAt = parseInt(el.dataset.minBaseat, 10);
+      const elapsed = Math.floor((Date.now() - baseAt) / 60000);
+      let val = base + elapsed;
+      if(val > 130) val = base; // safety: don't run away if the tab's been idle for hours
+      el.textContent = val + "'";
+    });
+  }
+  setInterval(tickLiveMinutes, 15000);
+
   // ---- render ----
   const leagueList = document.getElementById('leagueList');
-  leagues.forEach(l=>{
-    leagueList.innerHTML += `<div class="leaguerow">
-      <div class="l-left"><div class="flag" style="background:${l.color}">${l.name.slice(0,1)}</div>${l.name}</div>
-      <div class="count">${l.count}</div>
-    </div>`;
-  });
+  function renderLeagueSidebar(){
+    leagueList.innerHTML = '';
+    LEAGUES.forEach(lg=>{
+      const liveCount = (window.__allEvents || []).filter(e=>e.sport===lg.sport && e.league===lg.label && e.state==='in').length;
+      const row = document.createElement('div');
+      row.className = 'leaguerow';
+      row.style.cursor = 'pointer';
+      row.innerHTML = `<div class="l-left"><div class="flag" style="background:${lg.crestA}">${lg.label.slice(0,1)}</div>${lg.label}</div>
+        <div class="count">${liveCount}</div>`;
+      row.addEventListener('click', ()=>{ location.hash = '#/league/' + lg.sport + '/' + lg.league; });
+      leagueList.appendChild(row);
+    });
+  }
+  renderLeagueSidebar();
 
   const popularList = document.getElementById('popularList');
   popular.forEach(p=>{
@@ -742,7 +823,7 @@
       row.className = 'matchrow';
       row.dataset.mid = mid;
       row.innerHTML = `
-        <div class="mrmin ${m.cls}">${m.min}</div>
+        <div class="mrmin ${m.cls}"></div>
         <div class="teams-mini">
           <div class="row"><div class="mini-crest" style="background:${m.crestA}"></div>${m.a}</div>
           <div class="row"><div class="mini-crest" style="background:${m.crestB}"></div>${m.b}</div>
@@ -755,6 +836,12 @@
             <span class="star ${m.star?'on':''}">${m.star?'&#9733;':'&#9734;'}</span>
           </div>
         </div>`;
+      const mrminEl = row.querySelector('.mrmin');
+      if(m.cls !== 'q'){
+        setLiveMinuteEl(mrminEl, m.min);
+      } else {
+        mrminEl.textContent = m.min;
+      }
       attachRowNav(row, mid);
       matchList.appendChild(row);
     });
@@ -894,19 +981,6 @@
   const statusText = document.getElementById('dataStatusText');
   const liveCountEl = document.getElementById('liveCount');
 
-  const LEAGUES = [
-    {sport:'soccer',     league:'fifa.world',     label:'FIFA World Cup',   crestA:'#1c3a2b', crestB:'#3a1c1c'},
-    {sport:'soccer',     league:'uefa.champions', label:'Champions League', crestA:'#12203a', crestB:'#2b123a'},
-    {sport:'soccer',     league:'eng.1',          label:'Premier League',   crestA:'#1c2b4a', crestB:'#3a1414'},
-    {sport:'soccer',     league:'esp.1',          label:'La Liga',          crestA:'#3a1414', crestB:'#f5a62333'},
-    {sport:'soccer',     league:'ita.1',          label:'Serie A',          crestA:'#123a2b', crestB:'#3a3a12'},
-    {sport:'soccer',     league:'ger.1',          label:'Bundesliga',       crestA:'#2b1c3a', crestB:'#3a1414'},
-    {sport:'soccer',     league:'fra.1',          label:'Ligue 1',          crestA:'#12203a', crestB:'#3a1414'},
-    {sport:'basketball', league:'nba',            label:'NBA',              crestA:'#123a2b', crestB:'#3a2b12'},
-    {sport:'baseball',   league:'mlb',             label:'MLB',             crestA:'#2b1c3a', crestB:'#123030'},
-    {sport:'hockey',     league:'nhl',            label:'NHL',              crestA:'#3a3a12', crestB:'#122a3a'},
-  ];
-
   function fmtDay(iso){
     const d = new Date(iso);
     return d.toLocaleDateString(undefined, { weekday:'short', month:'short', day:'numeric' });
@@ -916,11 +990,7 @@
     return d.toLocaleTimeString(undefined, { hour:'numeric', minute:'2-digit' });
   }
 
-  async function fetchLeague(lg){
-    const url = `https://site.api.espn.com/apis/site/v2/sports/${lg.sport}/${lg.league}/scoreboard`;
-    const res = await fetch(url);
-    if(!res.ok) throw new Error('HTTP ' + res.status);
-    const data = await res.json();
+  function mapEvents(data, lg){
     return (data.events || []).map(ev=>{
       const comp = ev.competitions[0];
       const home = comp.competitors.find(c=>c.homeAway==='home');
@@ -940,6 +1010,28 @@
         crestA: lg.crestA, crestB: lg.crestB,
       };
     });
+  }
+  async function fetchLeague(lg){
+    const url = `https://site.api.espn.com/apis/site/v2/sports/${lg.sport}/${lg.league}/scoreboard`;
+    const res = await fetch(url);
+    if(!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    return mapEvents(data, lg);
+  }
+
+  // Fetch a wider date window for a single league so the League page can show
+  // recent results + today's live games + upcoming fixtures all at once.
+  function ymd(d){
+    return d.getFullYear().toString() + String(d.getMonth()+1).padStart(2,'0') + String(d.getDate()).padStart(2,'0');
+  }
+  async function fetchLeagueRange(lg){
+    const from = new Date(); from.setDate(from.getDate() - 10);
+    const to = new Date(); to.setDate(to.getDate() + 21);
+    const url = `https://site.api.espn.com/apis/site/v2/sports/${lg.sport}/${lg.league}/scoreboard?dates=${ymd(from)}-${ymd(to)}`;
+    const res = await fetch(url);
+    if(!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    return mapEvents(data, lg);
   }
 
   async function loadLiveScores(){
@@ -970,6 +1062,7 @@
     }
 
     window.__allEvents = allEvents;
+    renderLeagueSidebar();
 
     const live = allEvents.filter(e=>e.state === 'in');
     const upcoming = allEvents.filter(e=>e.state === 'pre').sort((x,y)=> new Date(x.date) - new Date(y.date));
@@ -1018,7 +1111,12 @@
         document.getElementById('heroLivePill').style.display = 'none';
       } else {
         document.getElementById('heroScore').innerHTML = `${heroEvent.sa}<span class="m">–</span>${heroEvent.sb}`;
-        document.getElementById('heroMinute').textContent = heroEvent.clock;
+        if(heroEvent.state === 'in'){
+          setLiveMinuteEl(document.getElementById('heroMinute'), heroEvent.clock);
+        } else {
+          delete document.getElementById('heroMinute').dataset.minBase;
+          document.getElementById('heroMinute').textContent = heroEvent.clock;
+        }
         document.getElementById('heroLivePill').style.display = heroEvent.state==='in' ? 'flex' : 'none';
       }
       document.getElementById('heroAgg').textContent = '';
@@ -1091,7 +1189,7 @@
       row.className = 'matchrow';
       row.dataset.mid = mid;
       row.innerHTML = `
-        <div class="mrmin">${e.clock}</div>
+        <div class="mrmin"></div>
         <div class="teams-mini">
           <div class="row"><div class="mini-crest" style="background:${e.crestA}"></div>${e.a}</div>
           <div class="row"><div class="mini-crest" style="background:${e.crestB}"></div>${e.b}</div>
@@ -1101,6 +1199,7 @@
           <div class="comp"><b>${e.league}</b>Live now</div>
           <div class="meta-actions"><span>&#9654;</span></div>
         </div>`;
+      setLiveMinuteEl(row.querySelector('.mrmin'), e.clock);
       attachRowNav(row, mid);
       listEl.appendChild(row);
     });
@@ -1130,7 +1229,12 @@
     crestA.textContent = (m.a || '–').slice(0,2).toUpperCase();
     crestB.textContent = (m.b || '–').slice(0,2).toUpperCase();
     document.getElementById('detailScore').innerHTML = isUpcoming ? 'vs' : `${m.sa}<span class="m">–</span>${m.sb}`;
-    document.getElementById('detailMinute').textContent = m.clock || '';
+    if(isLive){
+      setLiveMinuteEl(document.getElementById('detailMinute'), m.clock);
+    } else {
+      delete document.getElementById('detailMinute').dataset.minBase;
+      document.getElementById('detailMinute').textContent = m.clock || '';
+    }
     document.getElementById('detailLivePill').style.display = isLive ? 'flex' : 'none';
     document.querySelectorAll('#detailTabbar .t').forEach(t=>t.classList.remove('active'));
     document.querySelector('#detailTabbar .t[data-tab="overview"]').classList.add('active');
@@ -1189,8 +1293,81 @@
     renderDetailTab(t.dataset.tab, currentDetailMatch);
   });
   document.getElementById('matchDetailBack').addEventListener('click', ()=>{
-    location.hash = lastListView === 'live' ? '#/live' : '#/overview';
+    location.hash = lastListView === 'live' ? '#/live' : (lastListView === 'league' ? lastLeagueHash : '#/overview');
   });
+
+  // ================= LEAGUE VIEW (all matches: live + upcoming + recent) =================
+  function renderLeagueSection(containerId, events, kind){
+    const el = document.getElementById(containerId);
+    el.innerHTML = '';
+    if(!events.length){
+      el.innerHTML = `<div style="padding:16px 18px; color:var(--muted); font-size:13px;">No matches to show here right now.</div>`;
+      return;
+    }
+    events.forEach(e=>{
+      let clockLabel, subLabel, sa, sb, state;
+      if(kind === 'live'){
+        clockLabel = e.clock; subLabel = 'Live now'; sa = e.sa; sb = e.sb; state = 'in';
+      } else if(kind === 'pre'){
+        clockLabel = fmtTime(e.date); subLabel = fmtDay(e.date); sa = '–'; sb = '–'; state = 'pre';
+      } else {
+        clockLabel = 'Final'; subLabel = fmtDay(e.date) + ' · Final'; sa = e.sa; sb = e.sb; state = 'post';
+      }
+      const mid = registerMatch({
+        a:e.a, b:e.b, sa, sb, crestA:e.crestA, crestB:e.crestB,
+        comp:e.league, sub:subLabel, clock: kind==='pre' ? subLabel : clockLabel, state,
+      });
+      const row = document.createElement('div');
+      row.className = 'matchrow';
+      row.dataset.mid = mid;
+      row.innerHTML = `
+        <div class="mrmin ${kind==='pre'?'q':''}"></div>
+        <div class="teams-mini">
+          <div class="row"><div class="mini-crest" style="background:${e.crestA}"></div>${e.a}</div>
+          <div class="row"><div class="mini-crest" style="background:${e.crestB}"></div>${e.b}</div>
+        </div>
+        <div class="scores-mini"><div>${sa}</div><div>${sb}</div></div>
+        <div class="meta-mini">
+          <div class="comp"><b>${e.league}</b>${subLabel}</div>
+          <div class="meta-actions"><span>&#9654;</span></div>
+        </div>`;
+      const mrminEl = row.querySelector('.mrmin');
+      if(kind === 'live'){ setLiveMinuteEl(mrminEl, clockLabel); }
+      else { mrminEl.textContent = clockLabel; }
+      attachRowNav(row, mid);
+      el.appendChild(row);
+    });
+  }
+  let lastLeagueHash = '#/overview';
+  async function openLeagueView(sport, leagueSlug){
+    const lg = LEAGUES.find(l=>l.sport === sport && l.league === leagueSlug);
+    lastLeagueHash = '#/league/' + sport + '/' + leagueSlug;
+    document.getElementById('leagueViewTitle').textContent = lg ? lg.label : leagueSlug;
+    document.getElementById('leagueCounts').textContent = 'Loading…';
+    ['leagueLiveList','leagueUpcomingList','leagueRecentList'].forEach(id=>{
+      document.getElementById(id).innerHTML = `<div style="padding:16px 18px; color:var(--muted); font-size:13px;">Loading…</div>`;
+    });
+    if(!lg){
+      document.getElementById('leagueCounts').textContent = 'League not found';
+      return;
+    }
+    try{
+      const events = await fetchLeagueRange(lg);
+      const live = events.filter(e=>e.state === 'in');
+      const upcoming = events.filter(e=>e.state === 'pre').sort((a,b)=> new Date(a.date) - new Date(b.date));
+      const recent = events.filter(e=>e.state === 'post').sort((a,b)=> new Date(b.date) - new Date(a.date));
+      renderLeagueSection('leagueLiveList', live, 'live');
+      renderLeagueSection('leagueUpcomingList', upcoming, 'pre');
+      renderLeagueSection('leagueRecentList', recent, 'post');
+      document.getElementById('leagueCounts').textContent = `${live.length} live · ${upcoming.length} upcoming · ${recent.length} recent`;
+    } catch(err){
+      document.getElementById('leagueCounts').textContent = 'Could not load this league right now';
+      ['leagueLiveList','leagueUpcomingList','leagueRecentList'].forEach(id=>{
+        document.getElementById(id).innerHTML = `<div style="padding:16px 18px; color:var(--muted); font-size:13px;">Couldn't reach live data for this league. Try again shortly.</div>`;
+      });
+    }
+  }
+  document.getElementById('leagueViewBack').addEventListener('click', ()=>{ location.hash = '#/overview'; });
 
   // ================= ROUTER =================
   let lastListView = 'overview';
@@ -1200,6 +1377,7 @@
     });
     document.getElementById('liveAllView').style.display = (view === 'live') ? '' : 'none';
     document.getElementById('matchDetailView').style.display = (view === 'match') ? '' : 'none';
+    document.getElementById('leagueView').style.display = (view === 'league') ? '' : 'none';
   }
   function route(){
     const parts = location.hash.replace(/^#\/?/, '').split('/');
@@ -1213,13 +1391,17 @@
       lastListView = 'live';
       const activeChip = document.querySelector('#liveAllFilters .chip.active');
       renderLiveAll(activeChip ? activeChip.dataset.sport : 'all');
+    } else if(view === 'league' && parts[1] && parts[2]){
+      setMainView('league');
+      lastListView = 'league';
+      openLeagueView(parts[1], parts[2]);
     } else {
       setMainView('overview');
       lastListView = 'overview';
     }
 
     document.querySelectorAll('.navlink').forEach(a=>{
-      a.classList.toggle('active', a.dataset.view === (view === 'match' ? lastListView : view));
+      a.classList.toggle('active', a.dataset.view === (view === 'match' ? (lastListView === 'league' ? '' : lastListView) : view));
     });
     window.scrollTo({ top: 0, behavior: 'instant' });
   }
