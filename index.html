@@ -363,6 +363,78 @@
   .fixprob .pill{ font-family:'IBM Plex Mono', monospace; font-size:11px; padding:4px 9px; border-radius:20px; background:var(--surface-2); color:var(--muted); }
   .fixprob .pill.fav{ background:var(--pitch-dim); color:var(--pitch); }
 
+  /* ---------- Live view / Detail view ---------- */
+  .backrow{
+    display:inline-flex; align-items:center; gap:6px;
+    font-size:13.5px; font-weight:600; color:var(--muted);
+    cursor:pointer; padding:6px 4px; margin-bottom:2px;
+  }
+  .backrow:hover{ color:var(--text); }
+
+  .livegrid{ display:grid; grid-template-columns:repeat(2,1fr); gap:12px; padding:14px 18px 18px; }
+  .livecard{
+    background:var(--surface-2); border:1px solid var(--line); border-radius:12px;
+    padding:14px; cursor:pointer; transition:.15s;
+  }
+  .livecard:hover{ border-color:rgba(51,209,126,0.4); transform:translateY(-1px); }
+  .livecard .lc-top{ display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+  .livecard .lc-comp{ font-size:11px; color:var(--muted); font-weight:600; text-transform:uppercase; letter-spacing:.04em; }
+  .livecard .lc-min{ font-family:'IBM Plex Mono', monospace; font-size:11px; font-weight:700; color:var(--live); }
+  .livecard .lc-min.pre{ color:var(--muted); }
+  .livecard .lc-row{ display:flex; align-items:center; justify-content:space-between; padding:4px 0; font-size:14px; font-weight:500; }
+  .livecard .lc-row .name{ display:flex; align-items:center; gap:8px; }
+  .livecard .lc-crest{ width:18px; height:18px; border-radius:5px; flex-shrink:0; }
+  .livecard .lc-score{ font-family:'IBM Plex Mono', monospace; font-weight:700; }
+  @media (max-width: 900px){ .livegrid{ grid-template-columns:1fr; } }
+
+  .detail-hero{
+    padding:28px 30px;
+    background:
+      radial-gradient(circle at 20% 0%, rgba(51,209,126,0.14), transparent 45%),
+      radial-gradient(circle at 80% 100%, rgba(245,166,35,0.12), transparent 45%),
+      linear-gradient(180deg, #101720, #0C1119);
+  }
+  .detail-tag{ text-align:center; font-size:12px; color:var(--muted); font-weight:600; text-transform:uppercase; letter-spacing:.05em; margin-bottom:22px; }
+  .detail-teams{ display:grid; grid-template-columns:1fr auto 1fr; align-items:center; gap:20px; }
+  .detail-row{ display:flex; align-items:center; justify-content:space-between; padding:12px 0; border-top:1px solid var(--line); font-size:13.5px; }
+  .detail-row:first-child{ border-top:none; }
+  .detail-row .k{ color:var(--muted); }
+  .detail-row .v{ font-weight:500; text-align:right; }
+  .demo-flag{ display:inline-block; margin-top:12px; font-size:11.5px; color:var(--sun); background:var(--sun-dim); padding:4px 10px; border-radius:20px; font-weight:600; }
+
+  .groupheader{
+    padding:14px 18px 8px;
+    font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.06em;
+    color:var(--muted);
+    display:flex; align-items:center; gap:8px;
+  }
+  .groupheader .dot-live{ width:7px; height:7px; border-radius:50%; background:var(--live); }
+  .groupheader .dot-pre{ width:7px; height:7px; border-radius:50%; background:var(--muted); }
+  .groupheader .dot-post{ width:7px; height:7px; border-radius:50%; background:var(--pitch); }
+
+  .fixday{
+    padding:14px 18px 4px;
+    font-size:12.5px; font-weight:700; color:var(--text);
+    border-top:1px solid var(--line);
+  }
+  .fixday:first-child{ border-top:none; }
+
+  .leaguerow2{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:14px 18px; border-top:1px solid var(--line);
+    cursor:pointer;
+  }
+  .leaguerow2:hover{ background:var(--surface-2); }
+  .leaguerow2:first-child{ border-top:none; }
+  .leaguerow2 .lr-left{ display:flex; align-items:center; gap:12px; font-weight:600; font-size:14.5px; }
+  .leaguerow2 .lr-badge{ width:28px; height:28px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:12px; }
+  .leaguerow2 .lr-counts{ display:flex; align-items:center; gap:10px; font-size:12px; color:var(--muted); }
+  .leaguerow2 .lr-live{ color:var(--live); font-weight:700; }
+
+  .star-btn{ cursor:pointer; }
+  .empty-state{ padding:40px 18px; text-align:center; color:var(--muted); font-size:13.5px; }
+  .filter-clear{ display:inline-flex; align-items:center; gap:6px; margin:14px 18px 0; padding:6px 12px; border-radius:20px; background:var(--surface-2); border:1px solid var(--line); font-size:12.5px; color:var(--text); cursor:pointer; width:fit-content; }
+
   /* news */
   .newshead{ display:flex; align-items:center; justify-content:space-between; padding:18px 18px 4px; }
   .newshead .sectiontitle{ margin:0; font-size:15px; text-transform:none; letter-spacing:0; color:var(--text); font-family:'Space Grotesk',sans-serif; font-weight:600;}
@@ -430,13 +502,13 @@
     <div class="brand-name">Mundo<span>Goal</span></div>
   </div>
   <nav>
-    <a href="#/overview" class="navlink active" data-view="overview">Overview</a>
-    <a href="#/live" class="navlink" data-view="live">Live</a>
-    <a href="#/overview" class="navlink" data-view="overview">Scores</a>
-    <a href="#/overview" class="navlink" data-view="overview">Fixtures</a>
-    <a href="#/overview" class="navlink" data-view="overview">News</a>
-    <a href="#/overview" class="navlink" data-view="overview">Leagues</a>
-    <a href="#/overview" class="navlink" data-view="overview">Favorites</a>
+    <a href="#" class="active" id="navOverview">Overview</a>
+    <a href="#" id="navLive">Live</a>
+    <a href="#" id="navScores">Scores</a>
+    <a href="#" id="navFixtures">Fixtures</a>
+    <a href="#" id="navNews">News</a>
+    <a href="#" id="navLeagues">Leagues</a>
+    <a href="#" id="navFavorites">Favorites</a>
   </nav>
   <div class="headerright">
     <div class="search">
@@ -470,16 +542,20 @@
 
   <!-- MAIN -->
   <div class="main">
-    <div class="card" id="dateStripCard">
+    <div id="viewOverview">
+    <div class="card">
       <div class="dateStrip">
-        <span class="navbtn" id="dateStripPrev">&#8592;</span>
-        <div id="dateStripDays" style="display:flex; align-items:center; gap:6px;"></div>
-        <span class="navbtn" id="dateStripNext">&#8594;</span>
-        <div class="iconbtn cal" id="dateStripToday" title="Jump to today">&#128197;</div>
+        <span class="navbtn">&#8592;</span>
+        <div class="d">Tue 19 May</div>
+        <div class="d active">Wed 20 May</div>
+        <div class="d">Thu 21 May</div>
+        <div class="d">Fri 22 May</div>
+        <div class="d">Sat 23 May</div>
+        <div class="iconbtn cal">&#128197;</div>
       </div>
     </div>
 
-    <div class="hero" id="heroCard" style="cursor:pointer;">
+    <div class="hero" id="heroCard">
       <div class="hero-tag" id="heroTag">
         <span>&#127942;</span> Loading real match data… <span class="sep">•</span> <span id="heroDemoNote"></span>
       </div>
@@ -505,7 +581,7 @@
       </div>
     </div>
 
-    <div class="card" id="liveMatchesCard">
+    <div class="card">
       <div class="newshead" style="padding-bottom:0;">
         <div class="sectiontitle" style="margin:0;">Live Matches</div>
         <div style="font-size:12px; color:var(--muted);" id="liveCount">Fetching real data…</div>
@@ -528,10 +604,10 @@
         <div class="filter-ic">&#9881;</div>
       </div>
       <div id="matchList"></div>
-      <div class="viewall" id="viewAllLiveBtn">View all live matches &#8594;</div>
+      <div class="viewall">View all live matches &#8594;</div>
     </div>
 
-    <div class="card" id="fixturesCardWrap">
+    <div class="card">
       <div class="newshead">
         <div class="sectiontitle">Upcoming Fixtures</div>
         <div style="font-size:12.5px; color:var(--muted);">Real Premier League fixtures</div>
@@ -539,98 +615,86 @@
       <div id="fixtureList"></div>
     </div>
 
-    <div class="card" id="newsCardWrap">
+    <div class="card">
       <div class="newshead">
         <div class="sectiontitle">World News</div>
         <div style="font-size:12.5px; color:var(--muted);">View all news &#8594;</div>
       </div>
       <div class="newsgrid" id="newsGrid"></div>
     </div>
+    </div><!-- /viewOverview -->
 
-    <!-- ================= LIVE (ALL GAMES) VIEW ================= -->
-    <div class="card" id="liveAllView" style="display:none;">
-      <div class="newshead" style="padding-bottom:0;">
-        <div class="sectiontitle" style="margin:0;">All Live Matches</div>
-        <div style="font-size:12px; color:var(--muted);" id="liveAllCount"></div>
-      </div>
-      <div class="filters" id="liveAllFilters">
-        <div class="chip active" data-sport="all">All Sports</div>
-        <div class="chip" data-sport="soccer">&#9917; Football</div>
-        <div class="chip" data-sport="basketball">&#127936; Basketball</div>
-        <div class="chip" data-sport="baseball">&#9918; Baseball</div>
-        <div class="chip" data-sport="hockey">&#127954; Hockey</div>
-      </div>
-      <div id="liveAllList"></div>
-    </div>
-
-    <!-- ================= MATCH DETAIL VIEW ================= -->
-    <div id="matchDetailView" style="display:none;">
-      <div class="card cardpad" style="margin-bottom:20px; display:flex; align-items:center; gap:8px; cursor:pointer;" id="matchDetailBack">
-        <span>&#8592;</span> <span style="font-size:13.5px; font-weight:600; color:var(--muted);">Back</span>
-      </div>
-      <div class="hero" id="detailHero">
-        <div class="hero-tag" id="detailTag"></div>
-        <div class="hero-teams">
-          <div class="team-block">
-            <div class="crest a" id="detailCrestA">–</div>
-            <div class="team-name" id="detailNameA">–</div>
-          </div>
-          <div class="score-center">
-            <div class="live-pill" id="detailLivePill"><span class="dot"></span>LIVE</div>
-            <div class="bigscore" id="detailScore">–<span class="m">–</span>–</div>
-            <div class="minute" id="detailMinute">–</div>
-          </div>
-          <div class="team-block right">
-            <div class="crest b" id="detailCrestB">–</div>
-            <div class="team-name" id="detailNameB">–</div>
-          </div>
-        </div>
-      </div>
-      <div class="card" style="margin-top:20px;">
-        <div class="tabbar" style="padding:14px 18px 0;" id="detailTabbar">
-          <div class="t active" data-tab="overview">Overview</div>
-          <div class="t" data-tab="stats">Stats</div>
-          <div class="t" data-tab="lineups">Lineups</div>
-          <div class="t" data-tab="h2h">H2H</div>
-          <div class="t" data-tab="standings">Standings</div>
-          <div class="t" data-tab="news">News</div>
-        </div>
-        <div id="detailTabContent" style="padding:18px;"></div>
-      </div>
-    </div>
-
-    <!-- ================= LEAGUE VIEW (all matches for one league) ================= -->
-    <div id="leagueView" style="display:none;">
-      <div class="card cardpad" style="margin-bottom:20px; display:flex; align-items:center; gap:8px; cursor:pointer;" id="leagueViewBack">
-        <span>&#8592;</span> <span style="font-size:13.5px; font-weight:600; color:var(--muted);">Back</span>
-      </div>
-      <div class="card cardpad" style="margin-bottom:20px;">
-        <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;">
-          <div class="display" style="font-size:20px; font-weight:700;" id="leagueViewTitle">League</div>
-          <div style="font-size:12.5px; color:var(--muted);" id="leagueCounts"></div>
-        </div>
-      </div>
-
-      <div class="card" style="margin-bottom:20px;">
-        <div class="newshead" style="padding-bottom:0;">
-          <div class="sectiontitle" style="margin:0;">Live Now</div>
-        </div>
-        <div id="leagueLiveList"></div>
-      </div>
-
-      <div class="card" style="margin-bottom:20px;">
-        <div class="newshead" style="padding-bottom:0;">
-          <div class="sectiontitle" style="margin:0;">Upcoming</div>
-        </div>
-        <div id="leagueUpcomingList"></div>
-      </div>
-
+    <!-- LIVE VIEW (all live/scheduled matches, full page) -->
+    <div id="viewLive" style="display:none;">
       <div class="card">
-        <div class="newshead" style="padding-bottom:0;">
-          <div class="sectiontitle" style="margin:0;">Recent Results</div>
+        <div class="newshead">
+          <div class="sectiontitle" style="margin:0; font-size:15px; text-transform:none; letter-spacing:0; color:var(--text); font-family:'Space Grotesk',sans-serif; font-weight:600;">All Live Matches</div>
+          <div style="font-size:12.5px; color:var(--muted);" id="liveViewCount">Loading…</div>
         </div>
-        <div id="leagueRecentList"></div>
+        <div id="liveGamesGrid"></div>
       </div>
+    </div>
+
+    <!-- SCORES VIEW: every match across every league, grouped by status -->
+    <div id="viewScores" style="display:none;">
+      <div class="card">
+        <div class="newshead">
+          <div class="sectiontitle" style="margin:0; font-size:15px; text-transform:none; letter-spacing:0; color:var(--text); font-family:'Space Grotesk',sans-serif; font-weight:600;">Scores</div>
+          <div style="font-size:12.5px; color:var(--muted);" id="scoresViewCount">Loading…</div>
+        </div>
+        <div id="scoresContent"></div>
+      </div>
+    </div>
+
+    <!-- FIXTURES VIEW: full upcoming schedule, grouped by day -->
+    <div id="viewFixtures" style="display:none;">
+      <div class="card">
+        <div class="newshead">
+          <div class="sectiontitle" style="margin:0; font-size:15px; text-transform:none; letter-spacing:0; color:var(--text); font-family:'Space Grotesk',sans-serif; font-weight:600;">Fixtures</div>
+          <div style="font-size:12.5px; color:var(--muted);" id="fixturesViewCount">Loading…</div>
+        </div>
+        <div id="fixturesContent"></div>
+      </div>
+    </div>
+
+    <!-- NEWS VIEW -->
+    <div id="viewNews" style="display:none;">
+      <div class="card">
+        <div class="newshead">
+          <div class="sectiontitle" style="margin:0; font-size:15px; text-transform:none; letter-spacing:0; color:var(--text); font-family:'Space Grotesk',sans-serif; font-weight:600;">World News <span style="color:var(--muted); font-weight:400;">(demo data)</span></div>
+          <div style="font-size:12px; color:var(--muted);">Real news requires a news API — ask if you want this wired up</div>
+        </div>
+        <div class="newsgrid" id="newsContentFull"></div>
+      </div>
+    </div>
+
+    <!-- LEAGUES VIEW: real per-league live/upcoming counts -->
+    <div id="viewLeagues" style="display:none;">
+      <div class="card">
+        <div class="newshead">
+          <div class="sectiontitle" style="margin:0; font-size:15px; text-transform:none; letter-spacing:0; color:var(--text); font-family:'Space Grotesk',sans-serif; font-weight:600;">Leagues &amp; Competitions</div>
+          <div style="font-size:12.5px; color:var(--muted);">Real counts from live data</div>
+        </div>
+        <div id="leaguesContent"></div>
+      </div>
+    </div>
+
+    <!-- FAVORITES VIEW -->
+    <div id="viewFavorites" style="display:none;">
+      <div class="card">
+        <div class="newshead">
+          <div class="sectiontitle" style="margin:0; font-size:15px; text-transform:none; letter-spacing:0; color:var(--text); font-family:'Space Grotesk',sans-serif; font-weight:600;">Favorites</div>
+          <div style="font-size:12.5px; color:var(--muted);">Tap &#9733; on any match to save it here — saved on this device</div>
+        </div>
+        <div id="favoritesContent"></div>
+      </div>
+    </div>
+
+    <!-- MATCH DETAIL VIEW -->
+    <div id="viewDetail" style="display:none;">
+      <div class="backrow" id="detailBackBtn">&#8592; Back</div>
+      <div class="card" id="detailHero"></div>
+      <div class="card cardpad" id="detailMeta"></div>
     </div>
   </div>
 
@@ -663,18 +727,12 @@
 
 <script>
   // ---- data ----
-  // Real leagues we pull live/scheduled/recent data for (ESPN public scoreboard)
-  const LEAGUES = [
-    {sport:'soccer',     league:'fifa.world',     label:'FIFA World Cup',   crestA:'#1c3a2b', crestB:'#3a1c1c'},
-    {sport:'soccer',     league:'uefa.champions', label:'Champions League', crestA:'#12203a', crestB:'#2b123a'},
-    {sport:'soccer',     league:'eng.1',          label:'Premier League',   crestA:'#1c2b4a', crestB:'#3a1414'},
-    {sport:'soccer',     league:'esp.1',          label:'La Liga',          crestA:'#3a1414', crestB:'#f5a62333'},
-    {sport:'soccer',     league:'ita.1',          label:'Serie A',          crestA:'#123a2b', crestB:'#3a3a12'},
-    {sport:'soccer',     league:'ger.1',          label:'Bundesliga',       crestA:'#2b1c3a', crestB:'#3a1414'},
-    {sport:'soccer',     league:'fra.1',          label:'Ligue 1',          crestA:'#12203a', crestB:'#3a1414'},
-    {sport:'basketball', league:'nba',            label:'NBA',              crestA:'#123a2b', crestB:'#3a2b12'},
-    {sport:'baseball',   league:'mlb',             label:'MLB',             crestA:'#2b1c3a', crestB:'#123030'},
-    {sport:'hockey',     league:'nhl',            label:'NHL',              crestA:'#3a3a12', crestB:'#122a3a'},
+  const leagues = [
+    {name:"Meridian Prime", count:12, color:"#4E8CFF"},
+    {name:"Costera Liga", count:8, color:"#F5A623"},
+    {name:"Meridian Cup", count:15, color:"#33D17E"},
+    {name:"Serie Boreal", count:10, color:"#B98CFF"},
+    {name:"Nordfeld Liga", count:9, color:"#FF6B6B"},
   ];
   const popular = [
     {icon:"&#127942;", name:"World Federation Cup"},
@@ -734,71 +792,14 @@
     {live:true, a:"Boreal Celtics", sa:89, sb:76, b:"Marea Heat", min:"Q3"},
   ];
 
-  // ---- match registry (powers click-through to game detail pages) ----
-  let __mid = 1;
-  const matchRegistry = {};
-  function registerMatch(m){
-    const id = 'm' + (__mid++);
-    matchRegistry[id] = m;
-    return id;
-  }
-  function attachRowNav(el, mid){
-    el.style.cursor = 'pointer';
-    el.addEventListener('click', (e)=>{
-      if(e.target.closest('.star')) return; // don't navigate when tapping the favorite star
-      location.hash = '#/match/' + mid;
-    });
-  }
-
-  // ---- live minute ticker: keeps the clock counting up between 60s API polls ----
-  function parseSoccerMinute(clockStr){
-    if(!clockStr) return null;
-    const m = /^(\d+)(?:\+(\d+))?'$/.exec(clockStr.trim());
-    if(!m) return null;
-    return parseInt(m[1],10) + (m[2] ? parseInt(m[2],10) : 0);
-  }
-  function setLiveMinuteEl(el, clockStr){
-    if(!el) return;
-    const base = parseSoccerMinute(clockStr);
-    if(base === null){
-      // not a parseable running clock (HT, quarter, "Final", tip-off time, etc.) — show as-is
-      el.textContent = clockStr || '';
-      delete el.dataset.minBase;
-      delete el.dataset.minBaseat;
-      return;
-    }
-    el.dataset.minBase = base;
-    el.dataset.minBaseat = Date.now();
-    el.textContent = base + "'";
-  }
-  function tickLiveMinutes(){
-    document.querySelectorAll('[data-min-base]').forEach(el=>{
-      const base = parseInt(el.dataset.minBase, 10);
-      const baseAt = parseInt(el.dataset.minBaseat, 10);
-      const elapsed = Math.floor((Date.now() - baseAt) / 60000);
-      let val = base + elapsed;
-      if(val > 130) val = base; // safety: don't run away if the tab's been idle for hours
-      el.textContent = val + "'";
-    });
-  }
-  setInterval(tickLiveMinutes, 15000);
-
   // ---- render ----
   const leagueList = document.getElementById('leagueList');
-  function renderLeagueSidebar(){
-    leagueList.innerHTML = '';
-    LEAGUES.forEach(lg=>{
-      const liveCount = (window.__allEvents || []).filter(e=>e.sport===lg.sport && e.league===lg.label && e.state==='in').length;
-      const row = document.createElement('div');
-      row.className = 'leaguerow';
-      row.style.cursor = 'pointer';
-      row.innerHTML = `<div class="l-left"><div class="flag" style="background:${lg.crestA}">${lg.label.slice(0,1)}</div>${lg.label}</div>
-        <div class="count">${liveCount}</div>`;
-      row.addEventListener('click', ()=>{ location.hash = '#/league/' + lg.sport + '/' + lg.league; });
-      leagueList.appendChild(row);
-    });
-  }
-  renderLeagueSidebar();
+  leagues.forEach(l=>{
+    leagueList.innerHTML += `<div class="leaguerow">
+      <div class="l-left"><div class="flag" style="background:${l.color}">${l.name.slice(0,1)}</div>${l.name}</div>
+      <div class="count">${l.count}</div>
+    </div>`;
+  });
 
   const popularList = document.getElementById('popularList');
   popular.forEach(p=>{
@@ -813,17 +814,12 @@
   const matchList = document.getElementById('matchList');
   function renderMatches(list){
     matchList.innerHTML = '';
-    list.forEach(m=>{
-      const mid = registerMatch({
-        a:m.a, b:m.b, sa:m.sa, sb:m.sb, crestA:m.crestA, crestB:m.crestB,
-        comp:m.comp, sub:m.sub, clock:m.min,
-        state: (m.cls==='q' ? 'pre' : 'in'),
-      });
-      const row = document.createElement('div');
-      row.className = 'matchrow';
-      row.dataset.mid = mid;
-      row.innerHTML = `
-        <div class="mrmin ${m.cls}"></div>
+    window.currentMatchList = list;
+    list.forEach((m,i)=>{
+      const favKey = makeFavKey({comp:m.comp, a:m.a, b:m.b});
+      const fav = isFavorited(favKey);
+      matchList.innerHTML += `<div class="matchrow" data-idx="${i}">
+        <div class="mrmin ${m.cls}">${m.min}</div>
         <div class="teams-mini">
           <div class="row"><div class="mini-crest" style="background:${m.crestA}"></div>${m.a}</div>
           <div class="row"><div class="mini-crest" style="background:${m.crestB}"></div>${m.b}</div>
@@ -833,40 +829,59 @@
           <div class="comp"><b>${m.comp}</b>${m.sub}</div>
           <div class="meta-actions">
             <span>&#9654;</span>
-            <span class="star ${m.star?'on':''}">${m.star?'&#9733;':'&#9734;'}</span>
+            <span class="star star-btn ${fav?'on':''}" data-favkey="${favKey}">${fav?'&#9733;':'&#9734;'}</span>
           </div>
-        </div>`;
-      const mrminEl = row.querySelector('.mrmin');
-      if(m.cls !== 'q'){
-        setLiveMinuteEl(mrminEl, m.min);
-      } else {
-        mrminEl.textContent = m.min;
-      }
-      attachRowNav(row, mid);
-      matchList.appendChild(row);
+        </div>
+      </div>`;
+    });
+    matchList.querySelectorAll('.star-btn').forEach(star=>{
+      star.addEventListener('click', (ev)=>{
+        ev.stopPropagation();
+        const m = window.currentMatchList[+star.closest('.matchrow').dataset.idx];
+        toggleFavorite(m);
+        star.classList.toggle('on');
+        star.innerHTML = star.classList.contains('on') ? '&#9733;' : '&#9734;';
+      });
+    });
+    matchList.querySelectorAll('.matchrow').forEach(row=>{
+      row.addEventListener('click', ()=> openDetail(window.currentMatchList[+row.dataset.idx]));
     });
   }
 
   const fixtureList = document.getElementById('fixtureList');
   function renderFixtures(list){
     fixtureList.innerHTML = '';
-    list.forEach(f=>{
-      const mid = registerMatch({
-        a:f.a, b:f.b, sa:'–', sb:'–', crestA:'#1c2b4a', crestB:'#3a1414',
-        comp:'Fixture', sub:f.day, clock:f.time, state:'pre',
-      });
-      const row = document.createElement('div');
-      row.className = 'fixrow';
-      row.dataset.mid = mid;
-      row.innerHTML = `
+    window.currentFixtureList = list;
+    list.forEach((f,i)=>{
+      const favKey = makeFavKey({comp:f.comp, a:f.a, b:f.b});
+      fixtureList.innerHTML += `<div class="fixrow" data-idx="${i}">
         <div class="fixdate"><div class="day">${f.day}</div><div class="time">${f.time}</div></div>
         <div class="fixteams">${f.a} <span class="vs">vs</span> ${f.b}</div>
         <div class="fixprob">
           <span class="pill ${f.favA>f.favB?'fav':''}">${f.favA?.toFixed?f.favA.toFixed(0):f.favA}%</span>
           <span class="pill ${f.favB>f.favA?'fav':''}">${f.favB?.toFixed?f.favB.toFixed(0):f.favB}%</span>
-        </div>`;
-      attachRowNav(row, mid);
-      fixtureList.appendChild(row);
+          <span class="star star-btn ${isFavorited(favKey)?'on':''}" data-favkey="${favKey}" style="margin-left:6px;">${isFavorited(favKey)?'&#9733;':'&#9734;'}</span>
+        </div>
+      </div>`;
+    });
+    fixtureList.querySelectorAll('.star-btn').forEach(star=>{
+      star.addEventListener('click', (ev)=>{
+        ev.stopPropagation();
+        const f = window.currentFixtureList[+star.closest('.fixrow').dataset.idx];
+        toggleFavorite({comp:f.comp, a:f.a, b:f.b, sa:'–', sb:'–', state:'pre', date:f.rawDate, crestA:'#1c2b4a', crestB:'#3a1414'});
+        star.classList.toggle('on');
+        star.innerHTML = star.classList.contains('on') ? '&#9733;' : '&#9734;';
+      });
+    });
+    fixtureList.querySelectorAll('.fixrow').forEach(row=>{
+      row.addEventListener('click', ()=>{
+        const f = window.currentFixtureList[+row.dataset.idx];
+        openDetail({
+          a:f.a, b:f.b, sa:'–', sb:'–', comp: f.comp || 'Upcoming Fixture',
+          sub:'Scheduled', min: f.time, cls:'', crestA:'#1c2b4a', crestB:'#3a1414',
+          state:'pre', date:f.rawDate, venue:f.venue, broadcast:f.broadcast,
+        });
+      });
     });
   }
 
@@ -945,34 +960,12 @@
       c.classList.add('active');
     });
   });
-  // ---- Date strip: real, rolling dates centered on today ----
-  let dateStripOffset = 0;
-  function renderDateStrip(){
-    const wrap = document.getElementById('dateStripDays');
-    wrap.innerHTML = '';
-    const base = new Date();
-    base.setHours(0,0,0,0);
-    for(let i=0;i<5;i++){
-      const dayOffset = dateStripOffset + i;
-      const d = new Date(base);
-      d.setDate(base.getDate() + dayOffset);
-      const isToday = dayOffset === 0;
-      const label = d.toLocaleDateString(undefined, { weekday:'short', month:'short', day:'numeric' });
-      const el = document.createElement('div');
-      el.className = 'd' + (isToday ? ' active' : '');
-      el.textContent = isToday ? 'Today' : label;
-      el.title = label;
-      el.addEventListener('click', ()=>{
-        wrap.querySelectorAll('.d').forEach(x=>x.classList.remove('active'));
-        el.classList.add('active');
-      });
-      wrap.appendChild(el);
-    }
-  }
-  document.getElementById('dateStripPrev').addEventListener('click', ()=>{ dateStripOffset -= 5; renderDateStrip(); });
-  document.getElementById('dateStripNext').addEventListener('click', ()=>{ dateStripOffset += 5; renderDateStrip(); });
-  document.getElementById('dateStripToday').addEventListener('click', ()=>{ dateStripOffset = 0; renderDateStrip(); });
-  renderDateStrip();
+  document.querySelectorAll('.dateStrip .d').forEach(d=>{
+    d.addEventListener('click', ()=>{
+      document.querySelectorAll('.dateStrip .d').forEach(x=>x.classList.remove('active'));
+      d.classList.add('active');
+    });
+  });
 
   // ---- Live data: ESPN public scoreboard (no key, no account required) ----
   // Docs are unofficial — endpoint can change without notice.
@@ -980,6 +973,19 @@
   const statusEl = document.getElementById('dataStatus');
   const statusText = document.getElementById('dataStatusText');
   const liveCountEl = document.getElementById('liveCount');
+
+  const LEAGUES = [
+    {sport:'soccer',     league:'fifa.world',     label:'FIFA World Cup',   crestA:'#1c3a2b', crestB:'#3a1c1c'},
+    {sport:'soccer',     league:'uefa.champions', label:'Champions League', crestA:'#12203a', crestB:'#2b123a'},
+    {sport:'soccer',     league:'eng.1',          label:'Premier League',   crestA:'#1c2b4a', crestB:'#3a1414'},
+    {sport:'soccer',     league:'esp.1',          label:'La Liga',          crestA:'#3a1414', crestB:'#f5a62333'},
+    {sport:'soccer',     league:'ita.1',          label:'Serie A',          crestA:'#123a2b', crestB:'#3a3a12'},
+    {sport:'soccer',     league:'ger.1',          label:'Bundesliga',       crestA:'#2b1c3a', crestB:'#3a1414'},
+    {sport:'soccer',     league:'fra.1',          label:'Ligue 1',          crestA:'#12203a', crestB:'#3a1414'},
+    {sport:'basketball', league:'nba',            label:'NBA',              crestA:'#123a2b', crestB:'#3a2b12'},
+    {sport:'baseball',   league:'mlb',             label:'MLB',             crestA:'#2b1c3a', crestB:'#123030'},
+    {sport:'hockey',     league:'nhl',            label:'NHL',              crestA:'#3a3a12', crestB:'#122a3a'},
+  ];
 
   function fmtDay(iso){
     const d = new Date(iso);
@@ -990,15 +996,19 @@
     return d.toLocaleTimeString(undefined, { hour:'numeric', minute:'2-digit' });
   }
 
-  function mapEvents(data, lg){
+  async function fetchLeague(lg){
+    const url = `https://site.api.espn.com/apis/site/v2/sports/${lg.sport}/${lg.league}/scoreboard`;
+    const res = await fetch(url);
+    if(!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
     return (data.events || []).map(ev=>{
       const comp = ev.competitions[0];
       const home = comp.competitors.find(c=>c.homeAway==='home');
       const away = comp.competitors.find(c=>c.homeAway==='away');
       const state = comp.status.type.state; // "pre" | "in" | "post"
       return {
+        id: ev.id,
         league: lg.label,
-        sport: lg.sport,
         state,
         clock: comp.status.type.shortDetail,
         detail: comp.status.type.detail,
@@ -1008,30 +1018,10 @@
         sa: home.score ?? '0',
         sb: away.score ?? '0',
         crestA: lg.crestA, crestB: lg.crestB,
+        venue: comp.venue?.fullName || '',
+        broadcast: (comp.broadcasts && comp.broadcasts[0]?.names || []).join(', '),
       };
     });
-  }
-  async function fetchLeague(lg){
-    const url = `https://site.api.espn.com/apis/site/v2/sports/${lg.sport}/${lg.league}/scoreboard`;
-    const res = await fetch(url);
-    if(!res.ok) throw new Error('HTTP ' + res.status);
-    const data = await res.json();
-    return mapEvents(data, lg);
-  }
-
-  // Fetch a wider date window for a single league so the League page can show
-  // recent results + today's live games + upcoming fixtures all at once.
-  function ymd(d){
-    return d.getFullYear().toString() + String(d.getMonth()+1).padStart(2,'0') + String(d.getDate()).padStart(2,'0');
-  }
-  async function fetchLeagueRange(lg){
-    const from = new Date(); from.setDate(from.getDate() - 10);
-    const to = new Date(); to.setDate(to.getDate() + 21);
-    const url = `https://site.api.espn.com/apis/site/v2/sports/${lg.sport}/${lg.league}/scoreboard?dates=${ymd(from)}-${ymd(to)}`;
-    const res = await fetch(url);
-    if(!res.ok) throw new Error('HTTP ' + res.status);
-    const data = await res.json();
-    return mapEvents(data, lg);
   }
 
   async function loadLiveScores(){
@@ -1061,20 +1051,20 @@
       return;
     }
 
-    window.__allEvents = allEvents;
-    renderLeagueSidebar();
-
     const live = allEvents.filter(e=>e.state === 'in');
     const upcoming = allEvents.filter(e=>e.state === 'pre').sort((x,y)=> new Date(x.date) - new Date(y.date));
     const recent = allEvents.filter(e=>e.state === 'post');
+    window.allRawEvents = allEvents;
+    window.liveRawEvents = live;
 
-    // ---- Live matches list ----
+    // ---- Live matches list (overview card) ----
     if(live.length){
       renderMatches(live.slice(0,8).map(e=>({
         min: e.clock, cls: e.clock === 'Halftime' ? 'ht' : '',
         crestA: e.crestA, crestB: e.crestB,
         a: e.a, b: e.b, sa: e.sa, sb: e.sb,
         comp: e.league, sub: 'Live now', star:false,
+        state: e.state, date: e.date, venue: e.venue, broadcast: e.broadcast,
       })));
     } else {
       // no live games anywhere right now — show soonest upcoming instead, clearly labeled
@@ -1083,14 +1073,19 @@
         crestA: e.crestA, crestB: e.crestB,
         a: e.a, b: e.b, sa: '–', sb: '–',
         comp: e.league, sub: 'Scheduled · ' + fmtDay(e.date), star:false,
+        state: e.state, date: e.date, venue: e.venue, broadcast: e.broadcast,
       })));
     }
+
+    // ---- Full Live view (dedicated page) ----
+    renderLiveView(live, upcoming);
 
     // ---- Fixtures panel: nearest scheduled games across all leagues ----
     if(upcoming.length){
       renderFixtures(upcoming.slice(0,8).map(e=>({
         day: fmtDay(e.date), time: fmtTime(e.date),
         a: e.a, b: e.b, favA:'', favB:'',
+        comp: e.league, rawDate: e.date, venue: e.venue, broadcast: e.broadcast,
       })));
     }
 
@@ -1111,26 +1106,10 @@
         document.getElementById('heroLivePill').style.display = 'none';
       } else {
         document.getElementById('heroScore').innerHTML = `${heroEvent.sa}<span class="m">–</span>${heroEvent.sb}`;
-        if(heroEvent.state === 'in'){
-          setLiveMinuteEl(document.getElementById('heroMinute'), heroEvent.clock);
-        } else {
-          delete document.getElementById('heroMinute').dataset.minBase;
-          document.getElementById('heroMinute').textContent = heroEvent.clock;
-        }
+        document.getElementById('heroMinute').textContent = heroEvent.clock;
         document.getElementById('heroLivePill').style.display = heroEvent.state==='in' ? 'flex' : 'none';
       }
       document.getElementById('heroAgg').textContent = '';
-
-      const heroMid = registerMatch({
-        a: heroEvent.a, b: heroEvent.b, sa: heroEvent.sa, sb: heroEvent.sb,
-        crestA: heroEvent.crestA, crestB: heroEvent.crestB,
-        comp: heroEvent.league, sub: heroEvent.state==='pre' ? 'Upcoming — ' + fmtDay(heroEvent.date) : '',
-        clock: heroEvent.state==='pre' ? fmtTime(heroEvent.date) : heroEvent.clock,
-        state: heroEvent.state,
-      });
-      const heroCardEl = document.getElementById('heroCard');
-      heroCardEl.dataset.mid = heroMid;
-      heroCardEl.onclick = ()=>{ location.hash = '#/match/' + heroMid; };
     }
 
     // ---- Ticker: mix of live + upcoming from all leagues ----
@@ -1148,12 +1127,6 @@
     liveCountEl.textContent = live.length
       ? `${live.length} live match${live.length>1?'es':''} across ${LEAGUES.length} leagues`
       : `No live games right now — showing next scheduled matches`;
-
-    // keep the "all live games" page fresh if it's the one currently open
-    if(location.hash.replace(/^#\/?/, '').split('/')[0] === 'live'){
-      const activeChip = document.querySelector('#liveAllFilters .chip.active');
-      renderLiveAll(activeChip ? activeChip.dataset.sport : 'all');
-    }
   }
 
   // allow tickerHTML to accept custom data (falls back to module-level tickerData)
@@ -1162,251 +1135,356 @@
     return src.map(t=>`<span class="tick-item">${t.live?'<span class=\"tick-live\">&#9679; LIVE '+t.min+'</span>':'<span class=\"tick-live\" style=\"color:var(--muted)\">'+t.min+'</span>'} <b>${t.a}</b> ${t.sa}–${t.sb} <b>${t.b}</b></span>`).join('');
   };
 
-  // ================= LIVE (ALL GAMES) VIEW =================
-  window.__allEvents = window.__allEvents || [];
-  function renderLiveAll(sportFilter){
-    sportFilter = sportFilter || 'all';
-    const listEl = document.getElementById('liveAllList');
-    const countEl = document.getElementById('liveAllCount');
-    let live = (window.__allEvents || []).filter(e=>e.state === 'in');
-    if(sportFilter !== 'all'){ live = live.filter(e=>e.sport === sportFilter); }
+  // ---- Favorites (persisted in this browser via localStorage) ----
+  function getFavorites(){
+    try{ return JSON.parse(localStorage.getItem('mundogoal_favorites') || '[]'); }
+    catch(e){ return []; }
+  }
+  function saveFavorites(list){
+    try{ localStorage.setItem('mundogoal_favorites', JSON.stringify(list)); }catch(e){}
+  }
+  function makeFavKey(e){
+    return `${e.comp || e.league || ''}|${e.a}|${e.b}`;
+  }
+  function isFavorited(key){
+    return getFavorites().some(f=>f.key === key);
+  }
+  function toggleFavorite(e){
+    const key = makeFavKey(e);
+    let list = getFavorites();
+    if(list.some(f=>f.key===key)){
+      list = list.filter(f=>f.key!==key);
+    } else {
+      list.push({
+        key, a:e.a, b:e.b, sa:e.sa, sb:e.sb,
+        comp: e.comp || e.league, state: e.state, date: e.date,
+        crestA: e.crestA, crestB: e.crestB,
+      });
+    }
+    saveFavorites(list);
+  }
 
-    listEl.innerHTML = '';
-    if(!live.length){
-      countEl.textContent = 'No live games right now';
-      listEl.innerHTML = `<div style="padding:28px 18px; color:var(--muted); font-size:13.5px; text-align:center;">
-        No live games right now for this filter. Check back soon, or head to Overview for upcoming fixtures.
-      </div>`;
+  // ---- Dedicated "Live" page: every live match, plus soonest upcoming if nothing's live ----
+  const liveGamesGrid = document.getElementById('liveGamesGrid');
+  const liveViewCount = document.getElementById('liveViewCount');
+  function renderLiveView(live, upcoming){
+    const showList = live.length ? live : (upcoming || []).slice(0, 12);
+    window.currentLiveViewList = showList;
+    liveGamesGrid.innerHTML = '';
+    liveViewCount.textContent = live.length
+      ? `${live.length} match${live.length>1?'es':''} live right now`
+      : 'Nothing live right now — showing next scheduled matches';
+
+    if(showList.length === 0){
+      liveGamesGrid.innerHTML = `<div style="padding:30px 18px; color:var(--muted); font-size:13.5px;">No live or upcoming matches found.</div>`;
       return;
     }
-    countEl.textContent = `${live.length} live match${live.length>1?'es':''} right now`;
-    live.forEach(e=>{
-      const mid = registerMatch({
-        a:e.a, b:e.b, sa:e.sa, sb:e.sb, crestA:e.crestA, crestB:e.crestB,
-        comp:e.league, sub:'Live now', clock:e.clock, state:'in',
-      });
-      const row = document.createElement('div');
-      row.className = 'matchrow';
-      row.dataset.mid = mid;
-      row.innerHTML = `
-        <div class="mrmin"></div>
-        <div class="teams-mini">
-          <div class="row"><div class="mini-crest" style="background:${e.crestA}"></div>${e.a}</div>
-          <div class="row"><div class="mini-crest" style="background:${e.crestB}"></div>${e.b}</div>
-        </div>
-        <div class="scores-mini"><div>${e.sa}</div><div>${e.sb}</div></div>
-        <div class="meta-mini">
-          <div class="comp"><b>${e.league}</b>Live now</div>
-          <div class="meta-actions"><span>&#9654;</span></div>
-        </div>`;
-      setLiveMinuteEl(row.querySelector('.mrmin'), e.clock);
-      attachRowNav(row, mid);
-      listEl.appendChild(row);
-    });
-  }
-  document.getElementById('liveAllFilters').addEventListener('click', (e)=>{
-    const chip = e.target.closest('.chip');
-    if(!chip) return;
-    document.querySelectorAll('#liveAllFilters .chip').forEach(c=>c.classList.remove('active'));
-    chip.classList.add('active');
-    renderLiveAll(chip.dataset.sport);
-  });
-  document.getElementById('viewAllLiveBtn').addEventListener('click', ()=>{ location.hash = '#/live'; });
 
-  // ================= MATCH DETAIL VIEW =================
-  let currentDetailMatch = null;
-  function openMatchDetail(m){
-    currentDetailMatch = m;
-    const isUpcoming = m.state === 'pre';
-    const isLive = m.state === 'in';
-    document.getElementById('detailTag').innerHTML = `<span>&#127942;</span> ${m.comp || 'Match'} <span class="sep">•</span> <span>${isLive ? 'Live now' : (isUpcoming ? 'Upcoming' : (m.sub || 'Result'))}</span>`;
-    document.getElementById('detailNameA').textContent = m.a;
-    document.getElementById('detailNameB').textContent = m.b;
-    const crestA = document.getElementById('detailCrestA');
-    const crestB = document.getElementById('detailCrestB');
-    crestA.style.background = `linear-gradient(145deg, ${m.crestA || '#1c2b4a'}, #0e1626)`;
-    crestB.style.background = `linear-gradient(145deg, ${m.crestB || '#3a1414'}, #200a0a)`;
-    crestA.textContent = (m.a || '–').slice(0,2).toUpperCase();
-    crestB.textContent = (m.b || '–').slice(0,2).toUpperCase();
-    document.getElementById('detailScore').innerHTML = isUpcoming ? 'vs' : `${m.sa}<span class="m">–</span>${m.sb}`;
-    if(isLive){
-      setLiveMinuteEl(document.getElementById('detailMinute'), m.clock);
-    } else {
-      delete document.getElementById('detailMinute').dataset.minBase;
-      document.getElementById('detailMinute').textContent = m.clock || '';
-    }
-    document.getElementById('detailLivePill').style.display = isLive ? 'flex' : 'none';
-    document.querySelectorAll('#detailTabbar .t').forEach(t=>t.classList.remove('active'));
-    document.querySelector('#detailTabbar .t[data-tab="overview"]').classList.add('active');
-    renderDetailTab('overview', m);
-  }
-  function renderDetailTab(tab, m){
-    const el = document.getElementById('detailTabContent');
-    if(!m){ el.innerHTML = ''; return; }
-    if(tab === 'overview'){
-      const status = m.state==='in' ? `${m.a} vs ${m.b} is live now.` : (m.state==='pre' ? `${m.a} vs ${m.b} kicks off ${m.clock || 'soon'}.` : `${m.a} vs ${m.b} — full time.`);
-      el.innerHTML = `<div style="color:var(--muted); font-size:13.5px; line-height:1.7;">
-        <p><b style="color:var(--text);">${m.comp || 'Match'}</b>${m.sub ? ' · ' + m.sub : ''}</p>
-        <p style="margin-top:8px;">${status}</p>
-      </div>`;
-    } else if(tab === 'stats'){
-      const rows = stats.map(s=>{
-        const total = s.a + s.b || 1;
-        const pctA = (s.a/total*100).toFixed(0);
-        return `<div class="statrow">
-          <div class="num">${s.a}${s.unit||''}</div>
-          <div class="statbarwrap">
-            <div class="statlabel">${s.label}</div>
-            <div class="statbar"><div class="a" style="width:${pctA}%"></div><div class="b" style="width:${100-pctA}%"></div></div>
+    liveGamesGrid.className = 'livegrid';
+    showList.forEach((e,i)=>{
+      const isLive = e.state === 'in';
+      const favKey = makeFavKey(e);
+      liveGamesGrid.innerHTML += `<div class="livecard" data-idx="${i}">
+        <div class="lc-top">
+          <div class="lc-comp">${e.league}</div>
+          <div style="display:flex; align-items:center; gap:10px;">
+            <div class="lc-min ${isLive?'':'pre'}">${isLive ? '&#9679; ' + e.clock : fmtTime(e.date) + ' · ' + fmtDay(e.date)}</div>
+            <span class="star star-btn ${isFavorited(favKey)?'on':''}" data-favkey="${favKey}">${isFavorited(favKey)?'&#9733;':'&#9734;'}</span>
           </div>
-          <div class="num">${s.b}${s.unit||''}</div>
-        </div>`;
-      }).join('');
-      el.innerHTML = `<div style="font-size:11px; color:var(--muted); margin-bottom:12px;">(demo stats — live per-match stats aren't wired up yet)</div>${rows}`;
-    } else if(tab === 'lineups'){
-      el.innerHTML = `<div style="color:var(--muted); font-size:13.5px;">Lineups aren't available for this match yet.</div>`;
-    } else if(tab === 'h2h'){
-      el.innerHTML = `<div style="color:var(--muted); font-size:13.5px;">Head-to-head history isn't wired up yet for this match.</div>`;
-    } else if(tab === 'standings'){
-      const rows = standings.map(s=>`<div class="standingrow">
-        <div class="pos">${s.pos}</div>
-        <div class="team"><div class="team-dot" style="background:${s.color}"></div>${s.name}</div>
-        <div class="num">${s.p}</div>
-        <div class="num">${s.gd}</div>
-        <div class="pts">${s.pts}</div>
-      </div>`).join('');
-      el.innerHTML = `<div style="font-size:11px; color:var(--muted); margin-bottom:10px;">(demo standings)</div>
-        <div class="standingrow headrow"><div></div><div>Table</div><div>P</div><div>GD</div><div>Pts</div></div>${rows}`;
-    } else if(tab === 'news'){
-      const cards = newsItems.map(n=>`<div class="newscard">
-        <div class="newsthumb" style="background:${n.grad}"><div class="tag">${n.tag}</div></div>
-        <div class="newsbody">${n.title}<span class="time">${n.time}</span></div>
-      </div>`).join('');
-      el.innerHTML = `<div class="newsgrid" style="padding:0;">${cards}</div>`;
-    }
-  }
-  document.getElementById('detailTabbar').addEventListener('click', (e)=>{
-    const t = e.target.closest('.t');
-    if(!t) return;
-    document.querySelectorAll('#detailTabbar .t').forEach(x=>x.classList.remove('active'));
-    t.classList.add('active');
-    renderDetailTab(t.dataset.tab, currentDetailMatch);
-  });
-  document.getElementById('matchDetailBack').addEventListener('click', ()=>{
-    location.hash = lastListView === 'live' ? '#/live' : (lastListView === 'league' ? lastLeagueHash : '#/overview');
-  });
-
-  // ================= LEAGUE VIEW (all matches: live + upcoming + recent) =================
-  function renderLeagueSection(containerId, events, kind){
-    const el = document.getElementById(containerId);
-    el.innerHTML = '';
-    if(!events.length){
-      el.innerHTML = `<div style="padding:16px 18px; color:var(--muted); font-size:13px;">No matches to show here right now.</div>`;
-      return;
-    }
-    events.forEach(e=>{
-      let clockLabel, subLabel, sa, sb, state;
-      if(kind === 'live'){
-        clockLabel = e.clock; subLabel = 'Live now'; sa = e.sa; sb = e.sb; state = 'in';
-      } else if(kind === 'pre'){
-        clockLabel = fmtTime(e.date); subLabel = fmtDay(e.date); sa = '–'; sb = '–'; state = 'pre';
-      } else {
-        clockLabel = 'Final'; subLabel = fmtDay(e.date) + ' · Final'; sa = e.sa; sb = e.sb; state = 'post';
-      }
-      const mid = registerMatch({
-        a:e.a, b:e.b, sa, sb, crestA:e.crestA, crestB:e.crestB,
-        comp:e.league, sub:subLabel, clock: kind==='pre' ? subLabel : clockLabel, state,
-      });
-      const row = document.createElement('div');
-      row.className = 'matchrow';
-      row.dataset.mid = mid;
-      row.innerHTML = `
-        <div class="mrmin ${kind==='pre'?'q':''}"></div>
-        <div class="teams-mini">
-          <div class="row"><div class="mini-crest" style="background:${e.crestA}"></div>${e.a}</div>
-          <div class="row"><div class="mini-crest" style="background:${e.crestB}"></div>${e.b}</div>
         </div>
-        <div class="scores-mini"><div>${sa}</div><div>${sb}</div></div>
-        <div class="meta-mini">
-          <div class="comp"><b>${e.league}</b>${subLabel}</div>
-          <div class="meta-actions"><span>&#9654;</span></div>
-        </div>`;
-      const mrminEl = row.querySelector('.mrmin');
-      if(kind === 'live'){ setLiveMinuteEl(mrminEl, clockLabel); }
-      else { mrminEl.textContent = clockLabel; }
-      attachRowNav(row, mid);
-      el.appendChild(row);
+        <div class="lc-row"><div class="name"><div class="lc-crest" style="background:${e.crestA}"></div>${e.a}</div><div class="lc-score">${isLive ? e.sa : ''}</div></div>
+        <div class="lc-row"><div class="name"><div class="lc-crest" style="background:${e.crestB}"></div>${e.b}</div><div class="lc-score">${isLive ? e.sb : ''}</div></div>
+      </div>`;
+    });
+    liveGamesGrid.querySelectorAll('.star-btn').forEach(star=>{
+      star.addEventListener('click', (ev)=>{
+        ev.stopPropagation();
+        const e = showList[+star.closest('.livecard').dataset.idx];
+        toggleFavorite(e);
+        star.classList.toggle('on');
+        star.innerHTML = star.classList.contains('on') ? '&#9733;' : '&#9734;';
+      });
+    });
+    liveGamesGrid.querySelectorAll('.livecard').forEach(card=>{
+      card.addEventListener('click', ()=>{
+        const e = window.currentLiveViewList[+card.dataset.idx];
+        openDetail({
+          a:e.a, b:e.b, sa:e.sa, sb:e.sb, comp:e.league,
+          sub: e.state==='in' ? 'Live now' : 'Scheduled',
+          min: e.state==='in' ? e.clock : fmtTime(e.date), cls:'',
+          crestA:e.crestA, crestB:e.crestB,
+          state:e.state, date:e.date, venue:e.venue, broadcast:e.broadcast,
+        });
+      });
     });
   }
-  let lastLeagueHash = '#/overview';
-  async function openLeagueView(sport, leagueSlug){
-    const lg = LEAGUES.find(l=>l.sport === sport && l.league === leagueSlug);
-    lastLeagueHash = '#/league/' + sport + '/' + leagueSlug;
-    document.getElementById('leagueViewTitle').textContent = lg ? lg.label : leagueSlug;
-    document.getElementById('leagueCounts').textContent = 'Loading…';
-    ['leagueLiveList','leagueUpcomingList','leagueRecentList'].forEach(id=>{
-      document.getElementById(id).innerHTML = `<div style="padding:16px 18px; color:var(--muted); font-size:13px;">Loading…</div>`;
+
+  // ---- View switching: Overview / Live / Scores / Fixtures / News / Leagues / Favorites / Detail ----
+  const VIEWS = ['overview','live','scores','fixtures','news','leagues','favorites','detail'];
+  const viewEls = {};
+  const navEls = {};
+  VIEWS.forEach(v=>{
+    viewEls[v] = document.getElementById('view' + v.charAt(0).toUpperCase() + v.slice(1));
+  });
+  navEls.overview = document.getElementById('navOverview');
+  navEls.live = document.getElementById('navLive');
+  navEls.scores = document.getElementById('navScores');
+  navEls.fixtures = document.getElementById('navFixtures');
+  navEls.news = document.getElementById('navNews');
+  navEls.leagues = document.getElementById('navLeagues');
+  navEls.favorites = document.getElementById('navFavorites');
+  let lastView = 'overview';
+  window.leagueFilter = null;
+
+  function showView(name){
+    VIEWS.forEach(v=>{ if(viewEls[v]) viewEls[v].style.display = (v === name) ? '' : 'none'; });
+    Object.keys(navEls).forEach(k=>{ if(navEls[k]) navEls[k].classList.toggle('active', k === name); });
+    if(name !== 'detail') lastView = name;
+    if(name === 'scores') renderScoresView();
+    if(name === 'fixtures') renderFixturesView();
+    if(name === 'leagues') renderLeaguesView();
+    if(name === 'favorites') renderFavoritesView();
+    if(name === 'news') renderNewsFullView();
+    window.scrollTo({top:0, behavior:'smooth'});
+  }
+
+  navEls.overview.addEventListener('click', (ev)=>{ ev.preventDefault(); showView('overview'); });
+  navEls.live.addEventListener('click', (ev)=>{ ev.preventDefault(); showView('live'); });
+  navEls.scores.addEventListener('click', (ev)=>{ ev.preventDefault(); showView('scores'); });
+  navEls.fixtures.addEventListener('click', (ev)=>{ ev.preventDefault(); showView('fixtures'); });
+  navEls.news.addEventListener('click', (ev)=>{ ev.preventDefault(); showView('news'); });
+  navEls.leagues.addEventListener('click', (ev)=>{ ev.preventDefault(); showView('leagues'); });
+  navEls.favorites.addEventListener('click', (ev)=>{ ev.preventDefault(); showView('favorites'); });
+  document.querySelector('.viewall').addEventListener('click', ()=> showView('live'));
+  document.getElementById('detailBackBtn').addEventListener('click', ()=> showView(lastView));
+
+  // ---- Scores view: every match, grouped by Live / Upcoming / Final ----
+  function eventToRow(e){
+    return {
+      a:e.a, b:e.b, sa:e.sa, sb:e.sb, comp:e.league || e.comp,
+      state:e.state, date:e.date, crestA:e.crestA, crestB:e.crestB,
+      clock:e.clock, venue:e.venue, broadcast:e.broadcast,
+    };
+  }
+  function scoreCardHTML(e, i){
+    const isLive = e.state === 'in';
+    const favKey = makeFavKey(e);
+    const timeLabel = isLive ? ('&#9679; ' + e.clock) : e.state === 'pre' ? (fmtTime(e.date) + ' · ' + fmtDay(e.date)) : 'Final';
+    return `<div class="livecard" data-idx="${i}">
+      <div class="lc-top">
+        <div class="lc-comp">${e.league || e.comp}</div>
+        <div style="display:flex; align-items:center; gap:10px;">
+          <div class="lc-min ${isLive?'':'pre'}">${timeLabel}</div>
+          <span class="star star-btn ${isFavorited(favKey)?'on':''}" data-favkey="${favKey}">${isFavorited(favKey)?'&#9733;':'&#9734;'}</span>
+        </div>
+      </div>
+      <div class="lc-row"><div class="name"><div class="lc-crest" style="background:${e.crestA}"></div>${e.a}</div><div class="lc-score">${e.state!=='pre' ? e.sa : ''}</div></div>
+      <div class="lc-row"><div class="name"><div class="lc-crest" style="background:${e.crestB}"></div>${e.b}</div><div class="lc-score">${e.state!=='pre' ? e.sb : ''}</div></div>
+    </div>`;
+  }
+  function wireScoreCards(container, list){
+    container.querySelectorAll('.star-btn').forEach(star=>{
+      star.addEventListener('click',(ev)=>{
+        ev.stopPropagation();
+        const e = list[+star.closest('.livecard').dataset.idx];
+        toggleFavorite(e);
+        star.classList.toggle('on');
+        star.innerHTML = star.classList.contains('on') ? '&#9733;' : '&#9734;';
+      });
     });
-    if(!lg){
-      document.getElementById('leagueCounts').textContent = 'League not found';
+    container.querySelectorAll('.livecard').forEach(card=>{
+      card.addEventListener('click', ()=> openDetail({
+        ...list[+card.dataset.idx],
+        sub: list[+card.dataset.idx].state === 'in' ? 'Live now' : list[+card.dataset.idx].state === 'pre' ? 'Scheduled' : 'Final',
+        min: list[+card.dataset.idx].state === 'in' ? list[+card.dataset.idx].clock : fmtTime(list[+card.dataset.idx].date),
+        cls:'',
+      }));
+    });
+  }
+  function renderScoresView(){
+    const el = document.getElementById('scoresContent');
+    const countEl = document.getElementById('scoresViewCount');
+    let all = window.allRawEvents || [];
+    if(window.leagueFilter) all = all.filter(e=>e.league === window.leagueFilter);
+
+    if(!all.length){
+      countEl.textContent = 'No data yet';
+      el.innerHTML = `<div class="empty-state">Live data hasn't loaded yet — check back in a moment.</div>`;
       return;
     }
-    try{
-      const events = await fetchLeagueRange(lg);
-      const live = events.filter(e=>e.state === 'in');
-      const upcoming = events.filter(e=>e.state === 'pre').sort((a,b)=> new Date(a.date) - new Date(b.date));
-      const recent = events.filter(e=>e.state === 'post').sort((a,b)=> new Date(b.date) - new Date(a.date));
-      renderLeagueSection('leagueLiveList', live, 'live');
-      renderLeagueSection('leagueUpcomingList', upcoming, 'pre');
-      renderLeagueSection('leagueRecentList', recent, 'post');
-      document.getElementById('leagueCounts').textContent = `${live.length} live · ${upcoming.length} upcoming · ${recent.length} recent`;
-    } catch(err){
-      document.getElementById('leagueCounts').textContent = 'Could not load this league right now';
-      ['leagueLiveList','leagueUpcomingList','leagueRecentList'].forEach(id=>{
-        document.getElementById(id).innerHTML = `<div style="padding:16px 18px; color:var(--muted); font-size:13px;">Couldn't reach live data for this league. Try again shortly.</div>`;
+    countEl.textContent = `${all.length} matches${window.leagueFilter ? ' · ' + window.leagueFilter : ''}`;
+
+    const live = all.filter(e=>e.state==='in');
+    const upcoming = all.filter(e=>e.state==='pre').sort((x,y)=>new Date(x.date)-new Date(y.date));
+    const recent = all.filter(e=>e.state==='post');
+
+    let html = '';
+    if(window.leagueFilter){
+      html += `<div class="filter-clear" id="clearLeagueFilter">&#10005; ${window.leagueFilter}</div>`;
+    }
+    if(live.length){
+      html += `<div class="groupheader"><span class="dot-live"></span>Live now (${live.length})</div><div class="livegrid">${live.map((e,i)=>scoreCardHTML(e,i)).join('')}</div>`;
+    }
+    if(upcoming.length){
+      html += `<div class="groupheader"><span class="dot-pre"></span>Upcoming (${upcoming.length})</div><div class="livegrid">${upcoming.slice(0,20).map((e,i)=>scoreCardHTML(e,i+live.length)).join('')}</div>`;
+    }
+    if(recent.length){
+      html += `<div class="groupheader"><span class="dot-post"></span>Recent results (${recent.length})</div><div class="livegrid">${recent.slice(0,10).map((e,i)=>scoreCardHTML(e,i+live.length+upcoming.length)).join('')}</div>`;
+    }
+    el.innerHTML = html;
+    const combined = [...live, ...upcoming.slice(0,20), ...recent.slice(0,10)];
+    wireScoreCards(el, combined);
+    const clearBtn = document.getElementById('clearLeagueFilter');
+    if(clearBtn) clearBtn.addEventListener('click', ()=>{ window.leagueFilter = null; renderScoresView(); });
+  }
+
+  // ---- Fixtures view: full upcoming schedule grouped by day ----
+  function renderFixturesView(){
+    const el = document.getElementById('fixturesContent');
+    const countEl = document.getElementById('fixturesViewCount');
+    const upcoming = (window.allRawEvents || []).filter(e=>e.state==='pre').sort((x,y)=>new Date(x.date)-new Date(y.date));
+    if(!upcoming.length){
+      countEl.textContent = 'No data yet';
+      el.innerHTML = `<div class="empty-state">No upcoming fixtures found right now.</div>`;
+      return;
+    }
+    countEl.textContent = `${upcoming.length} scheduled matches`;
+    const groups = {};
+    upcoming.forEach(e=>{
+      const day = fmtDay(e.date);
+      (groups[day] = groups[day] || []).push(e);
+    });
+    let html = '';
+    let idx = 0;
+    const flat = [];
+    Object.keys(groups).forEach(day=>{
+      html += `<div class="fixday">${day}</div>`;
+      groups[day].forEach(e=>{
+        const favKey = makeFavKey(e);
+        html += `<div class="fixrow" data-idx="${idx}">
+          <div class="fixdate"><div class="day">${fmtTime(e.date)}</div><div class="time">${e.league}</div></div>
+          <div class="fixteams">${e.a} <span class="vs">vs</span> ${e.b}</div>
+          <div class="fixprob"><span class="star star-btn ${isFavorited(favKey)?'on':''}" data-favkey="${favKey}">${isFavorited(favKey)?'&#9733;':'&#9734;'}</span></div>
+        </div>`;
+        flat.push(e);
+        idx++;
       });
-    }
-  }
-  document.getElementById('leagueViewBack').addEventListener('click', ()=>{ location.hash = '#/overview'; });
-
-  // ================= ROUTER =================
-  let lastListView = 'overview';
-  function setMainView(view){
-    ['dateStripCard','heroCard','liveMatchesCard','fixturesCardWrap','newsCardWrap'].forEach(id=>{
-      document.getElementById(id).style.display = (view === 'overview') ? '' : 'none';
     });
-    document.getElementById('liveAllView').style.display = (view === 'live') ? '' : 'none';
-    document.getElementById('matchDetailView').style.display = (view === 'match') ? '' : 'none';
-    document.getElementById('leagueView').style.display = (view === 'league') ? '' : 'none';
-  }
-  function route(){
-    const parts = location.hash.replace(/^#\/?/, '').split('/');
-    const view = parts[0] || 'overview';
-
-    if(view === 'match' && parts[1] && matchRegistry[parts[1]]){
-      setMainView('match');
-      openMatchDetail(matchRegistry[parts[1]]);
-    } else if(view === 'live'){
-      setMainView('live');
-      lastListView = 'live';
-      const activeChip = document.querySelector('#liveAllFilters .chip.active');
-      renderLiveAll(activeChip ? activeChip.dataset.sport : 'all');
-    } else if(view === 'league' && parts[1] && parts[2]){
-      setMainView('league');
-      lastListView = 'league';
-      openLeagueView(parts[1], parts[2]);
-    } else {
-      setMainView('overview');
-      lastListView = 'overview';
-    }
-
-    document.querySelectorAll('.navlink').forEach(a=>{
-      a.classList.toggle('active', a.dataset.view === (view === 'match' ? (lastListView === 'league' ? '' : lastListView) : view));
+    el.innerHTML = html;
+    el.querySelectorAll('.star-btn').forEach(star=>{
+      star.addEventListener('click',(ev)=>{
+        ev.stopPropagation();
+        const e = flat[+star.closest('.fixrow').dataset.idx];
+        toggleFavorite(e);
+        star.classList.toggle('on');
+        star.innerHTML = star.classList.contains('on') ? '&#9733;' : '&#9734;';
+      });
     });
-    window.scrollTo({ top: 0, behavior: 'instant' });
+    el.querySelectorAll('.fixrow').forEach(row=>{
+      row.addEventListener('click', ()=>{
+        const e = flat[+row.dataset.idx];
+        openDetail({ a:e.a, b:e.b, sa:'–', sb:'–', comp:e.league, sub:'Scheduled', min:fmtTime(e.date), cls:'', crestA:e.crestA, crestB:e.crestB, state:'pre', date:e.date, venue:e.venue, broadcast:e.broadcast });
+      });
+    });
   }
-  window.addEventListener('hashchange', route);
-  route();
+
+  // ---- Leagues view: real live/upcoming counts per competition ----
+  function renderLeaguesView(){
+    const el = document.getElementById('leaguesContent');
+    const all = window.allRawEvents || [];
+    let html = '';
+    LEAGUES.forEach(lg=>{
+      const matchesForLg = all.filter(e=>e.league === lg.label);
+      const liveCount = matchesForLg.filter(e=>e.state==='in').length;
+      const upcomingCount = matchesForLg.filter(e=>e.state==='pre').length;
+      html += `<div class="leaguerow2" data-league="${lg.label}">
+        <div class="lr-left">
+          <div class="lr-badge" style="background:${lg.crestA};">${lg.label.slice(0,1)}</div>
+          ${lg.label}
+        </div>
+        <div class="lr-counts">
+          ${liveCount ? `<span class="lr-live">&#9679; ${liveCount} live</span>` : ''}
+          <span>${upcomingCount} upcoming</span>
+        </div>
+      </div>`;
+    });
+    el.innerHTML = html || `<div class="empty-state">Live data hasn't loaded yet.</div>`;
+    el.querySelectorAll('.leaguerow2').forEach(row=>{
+      row.addEventListener('click', ()=>{
+        window.leagueFilter = row.dataset.league;
+        showView('scores');
+      });
+    });
+  }
+
+  // ---- News view (demo data, full grid) ----
+  function renderNewsFullView(){
+    const el = document.getElementById('newsContentFull');
+    el.innerHTML = newsItems.map(n=>`<div class="newscard">
+      <div class="newsthumb" style="background:${n.grad}"><div class="tag">${n.tag}</div></div>
+      <div class="newsbody">${n.title}<span class="time">${n.time}</span></div>
+    </div>`).join('');
+  }
+
+  // ---- Favorites view ----
+  function renderFavoritesView(){
+    const el = document.getElementById('favoritesContent');
+    const favs = getFavorites();
+    if(!favs.length){
+      el.innerHTML = `<div class="empty-state">No favorites yet — tap &#9733; on any match to save it here.</div>`;
+      return;
+    }
+    el.innerHTML = `<div class="livegrid">${favs.map((e,i)=>scoreCardHTML(e,i)).join('')}</div>`;
+    wireScoreCards(el, favs);
+    // in the favorites view, clicking the star always removes (re-render list after)
+    el.querySelectorAll('.star-btn').forEach(star=>{
+      star.addEventListener('click', ()=> setTimeout(renderFavoritesView, 0));
+    });
+  }
+
+  // ---- Match Detail page ----
+  function openDetail(item){
+    const isLive = item.state === 'in';
+    const isPre = item.state === 'pre';
+    const isDemo = !item.state; // demo-data rows carry no state field
+
+    document.getElementById('detailHero').innerHTML = `
+      <div class="detail-hero">
+        <div class="detail-tag">&#127942; ${item.comp}${item.sub ? ' <span class="sep">•</span> ' + item.sub : ''}</div>
+        <div class="detail-teams">
+          <div class="team-block">
+            <div class="crest a" style="background:linear-gradient(145deg, ${item.crestA}, #0e1626);">${item.a.slice(0,2).toUpperCase()}</div>
+            <div class="team-name">${item.a}</div>
+          </div>
+          <div class="score-center">
+            ${isLive ? '<div class="live-pill"><span class="dot"></span>LIVE</div>' : ''}
+            <div class="bigscore">${isPre ? 'vs' : `${item.sa}<span class="m">–</span>${item.sb}`}</div>
+            <div class="minute">${item.min || ''}</div>
+          </div>
+          <div class="team-block right">
+            <div class="crest b" style="background:linear-gradient(145deg, ${item.crestB}, #200a0a);">${item.b.slice(0,2).toUpperCase()}</div>
+            <div class="team-name">${item.b}</div>
+          </div>
+        </div>
+        ${isDemo ? '<div style="text-align:center;"><span class="demo-flag">Demo data</span></div>' : ''}
+      </div>`;
+
+    let rows = '';
+    if(item.date && !isDemo){
+      const d = new Date(item.date);
+      rows += `<div class="detail-row"><div class="k">Date</div><div class="v">${d.toLocaleDateString(undefined,{weekday:'long', month:'long', day:'numeric', year:'numeric'})}</div></div>`;
+      rows += `<div class="detail-row"><div class="k">Kickoff / Start time</div><div class="v">${d.toLocaleTimeString(undefined,{hour:'numeric', minute:'2-digit'})}</div></div>`;
+    }
+    rows += `<div class="detail-row"><div class="k">Competition</div><div class="v">${item.comp}</div></div>`;
+    rows += `<div class="detail-row"><div class="k">Status</div><div class="v">${isLive ? 'Live — ' + item.min : isPre ? 'Scheduled' : isDemo ? 'Demo match' : 'Final'}</div></div>`;
+    if(item.venue) rows += `<div class="detail-row"><div class="k">Venue</div><div class="v">${item.venue}</div></div>`;
+    if(item.broadcast) rows += `<div class="detail-row"><div class="k">Broadcast</div><div class="v">${item.broadcast}</div></div>`;
+    if(isDemo) rows += `<div class="detail-row"><div class="k">Data source</div><div class="v">Demo/mock content</div></div>`;
+    else rows += `<div class="detail-row"><div class="k">Data source</div><div class="v">ESPN public scoreboard</div></div>`;
+
+    document.getElementById('detailMeta').innerHTML = `<div class="sectiontitle">Match Info</div>${rows}`;
+    showView('detail');
+  }
 
   loadLiveScores();
   setInterval(loadLiveScores, 60000); // refresh every 60s
