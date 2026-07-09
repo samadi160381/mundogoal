@@ -1087,6 +1087,7 @@
       const state = comp.status.type.state; // "pre" | "in" | "post"
       return {
         id: ev.id,
+        sport: lg.sport, leagueCode: lg.league,
         league: lg.label,
         state,
         clock: comp.status.type.shortDetail,
@@ -1141,7 +1142,7 @@
     if(live.length){
       renderMatches(live.slice(0,8).map(e=>({
         min: e.clock, cls: e.clock === 'Halftime' ? 'ht' : '',
-        crestA: e.crestA, crestB: e.crestB, logoA: e.logoA, logoB: e.logoB,
+        crestA: e.crestA, crestB: e.crestB, logoA: e.logoA, logoB: e.logoB, id: e.id, sport: e.sport, leagueCode: e.leagueCode,
         a: e.a, b: e.b, sa: e.sa, sb: e.sb,
         comp: e.league, sub: 'Live now', star:false,
         state: e.state, date: e.date, venue: e.venue, broadcast: e.broadcast,
@@ -1150,7 +1151,7 @@
       // no live games anywhere right now — show soonest upcoming instead, clearly labeled
       renderMatches(upcoming.slice(0,6).map(e=>({
         min: fmtTime(e.date), cls: 'q',
-        crestA: e.crestA, crestB: e.crestB, logoA: e.logoA, logoB: e.logoB,
+        crestA: e.crestA, crestB: e.crestB, logoA: e.logoA, logoB: e.logoB, id: e.id, sport: e.sport, leagueCode: e.leagueCode,
         a: e.a, b: e.b, sa: '–', sb: '–',
         comp: e.league, sub: 'Scheduled · ' + fmtDay(e.date), star:false,
         state: e.state, date: e.date, venue: e.venue, broadcast: e.broadcast,
@@ -1166,7 +1167,7 @@
         day: fmtDay(e.date), time: fmtTime(e.date),
         a: e.a, b: e.b, favA:'', favB:'',
         comp: e.league, rawDate: e.date, venue: e.venue, broadcast: e.broadcast,
-        logoA: e.logoA, logoB: e.logoB,
+        logoA: e.logoA, logoB: e.logoB, id: e.id, sport: e.sport, leagueCode: e.leagueCode,
       })));
     }
 
@@ -1243,7 +1244,7 @@
       list.push({
         key, a:e.a, b:e.b, sa:e.sa, sb:e.sb,
         comp: e.comp || e.league, state: e.state, date: e.date,
-        crestA: e.crestA, crestB: e.crestB, logoA: e.logoA, logoB: e.logoB,
+        crestA: e.crestA, crestB: e.crestB, logoA: e.logoA, logoB: e.logoB, id: e.id, sport: e.sport, leagueCode: e.leagueCode,
       });
     }
     saveFavorites(list);
@@ -1297,7 +1298,7 @@
           a:e.a, b:e.b, sa:e.sa, sb:e.sb, comp:e.league,
           sub: e.state==='in' ? 'Live now' : 'Scheduled',
           min: e.state==='in' ? e.clock : fmtTime(e.date), cls:'',
-          crestA:e.crestA, crestB:e.crestB, logoA:e.logoA, logoB:e.logoB,
+          crestA:e.crestA, crestB:e.crestB, logoA:e.logoA, logoB:e.logoB, id:e.id, sport:e.sport, leagueCode:e.leagueCode,
           state:e.state, date:e.date, venue:e.venue, broadcast:e.broadcast,
         });
       });
@@ -1347,7 +1348,7 @@
   function eventToRow(e){
     return {
       a:e.a, b:e.b, sa:e.sa, sb:e.sb, comp:e.league || e.comp,
-      state:e.state, date:e.date, crestA:e.crestA, crestB:e.crestB, logoA:e.logoA, logoB:e.logoB,
+      state:e.state, date:e.date, crestA:e.crestA, crestB:e.crestB, logoA:e.logoA, logoB:e.logoB, id:e.id, sport:e.sport, leagueCode:e.leagueCode,
       clock:e.clock, venue:e.venue, broadcast:e.broadcast,
     };
   }
@@ -1468,7 +1469,7 @@
     el.querySelectorAll('.fixrow').forEach(row=>{
       row.addEventListener('click', ()=>{
         const e = flat[+row.dataset.idx];
-        openDetail({ a:e.a, b:e.b, sa:'–', sb:'–', comp:e.league, sub:'Scheduled', min:fmtTime(e.date), cls:'', crestA:e.crestA, crestB:e.crestB, logoA:e.logoA, logoB:e.logoB, state:'pre', date:e.date, venue:e.venue, broadcast:e.broadcast });
+        openDetail({ a:e.a, b:e.b, sa:'–', sb:'–', comp:e.league, sub:'Scheduled', min:fmtTime(e.date), cls:'', crestA:e.crestA, crestB:e.crestB, logoA:e.logoA, logoB:e.logoB, id:e.id, sport:e.sport, leagueCode:e.leagueCode, state:'pre', date:e.date, venue:e.venue, broadcast:e.broadcast });
       });
     });
   }
@@ -1528,6 +1529,7 @@
   }
 
   // ---- Match Detail page ----
+  let detailRequestSeq = 0;
   function openDetail(item){
     const isLive = item.state === 'in';
     const isPre = item.state === 'pre';
@@ -1564,11 +1566,50 @@
     rows += `<div class="detail-row"><div class="k">Status</div><div class="v">${isLive ? 'Live — ' + item.min : isPre ? 'Scheduled' : isDemo ? 'Demo match' : 'Final'}</div></div>`;
     if(item.venue) rows += `<div class="detail-row"><div class="k">Venue</div><div class="v">${item.venue}</div></div>`;
     if(item.broadcast) rows += `<div class="detail-row"><div class="k">Broadcast</div><div class="v">${item.broadcast}</div></div>`;
+    const canFetchExtras = !isDemo && item.id && item.sport && item.leagueCode;
+    if(canFetchExtras){
+      rows += `<div class="detail-row" id="detailWeatherRow"><div class="k">Weather</div><div class="v">Loading…</div></div>`;
+      rows += `<div class="detail-row" id="detailRefRow"><div class="k">Referee</div><div class="v">Loading…</div></div>`;
+    }
     if(isDemo) rows += `<div class="detail-row"><div class="k">Data source</div><div class="v">Demo/mock content</div></div>`;
     else rows += `<div class="detail-row"><div class="k">Data source</div><div class="v">ESPN public scoreboard</div></div>`;
 
     document.getElementById('detailMeta').innerHTML = `<div class="sectiontitle">Match Info</div>${rows}`;
     showView('detail');
+
+    if(canFetchExtras){
+      const mySeq = ++detailRequestSeq;
+      fetch(`https://site.api.espn.com/apis/site/v2/sports/${item.sport}/${item.leagueCode}/summary?event=${item.id}`)
+        .then(r=>r.ok ? r.json() : Promise.reject())
+        .then(data=>{
+          // If the user has since opened a different match, don't overwrite it with stale data.
+          if(mySeq !== detailRequestSeq) return;
+          const weatherRow = document.getElementById('detailWeatherRow');
+          const refRow = document.getElementById('detailRefRow');
+          if(!weatherRow || !refRow) return;
+
+          const w = data.gameInfo?.weather;
+          if(w && (w.displayValue || w.temperature != null)){
+            const tempTxt = w.temperature != null ? `${w.temperature}°F` : '';
+            weatherRow.querySelector('.v').textContent = [tempTxt, w.displayValue].filter(Boolean).join(' — ');
+          } else {
+            weatherRow.querySelector('.v').textContent = 'Not available (indoor or not reported)';
+          }
+
+          const officials = data.gameInfo?.officials;
+          const ref = officials && officials.length ? officials[0].displayName : null;
+          refRow.querySelector('.v').textContent = ref || 'Not yet announced';
+        })
+        .catch(()=>{
+          if(mySeq !== detailRequestSeq) return;
+          const weatherRow = document.getElementById('detailWeatherRow');
+          const refRow = document.getElementById('detailRefRow');
+          if(weatherRow) weatherRow.querySelector('.v').textContent = 'Unavailable';
+          if(refRow) refRow.querySelector('.v').textContent = 'Unavailable';
+        });
+    } else {
+      detailRequestSeq++; // invalidate any in-flight fetch from a previously opened real match
+    }
   }
 
   // ---- Search ----
@@ -1599,7 +1640,7 @@
             a:e.a, b:e.b, sa:e.sa, sb:e.sb, comp:e.league,
             sub: e.state==='in' ? 'Live now' : e.state==='pre' ? 'Scheduled' : 'Final',
             min: e.state==='in' ? e.clock : fmtTime(e.date), cls:'',
-            crestA:e.crestA, crestB:e.crestB, logoA:e.logoA, logoB:e.logoB,
+            crestA:e.crestA, crestB:e.crestB, logoA:e.logoA, logoB:e.logoB, id:e.id, sport:e.sport, leagueCode:e.leagueCode,
             state:e.state, date:e.date, venue:e.venue, broadcast:e.broadcast,
           });
         });
