@@ -793,13 +793,29 @@
   ];
 
   // ---- render ----
-  const leagueList = document.getElementById('leagueList');
-  leagues.forEach(l=>{
-    leagueList.innerHTML += `<div class="leaguerow">
-      <div class="l-left"><div class="flag" style="background:${l.color}">${l.name.slice(0,1)}</div>${l.name}</div>
-      <div class="count">${l.count}</div>
-    </div>`;
-  });
+  // Real leagues (used for the "Live Now" sidebar + all live data fetching)
+  const LEAGUES = [
+    {sport:'soccer',     league:'fifa.world',     label:'FIFA World Cup',   crestA:'#1c3a2b', crestB:'#3a1c1c', color:'#33D17E'},
+    {sport:'soccer',     league:'uefa.champions', label:'Champions League', crestA:'#12203a', crestB:'#2b123a', color:'#4E8CFF'},
+    {sport:'soccer',     league:'eng.1',          label:'Premier League',   crestA:'#1c2b4a', crestB:'#3a1414', color:'#F5A623'},
+    {sport:'soccer',     league:'esp.1',          label:'La Liga',          crestA:'#3a1414', crestB:'#f5a62333', color:'#FF4D5E'},
+    {sport:'soccer',     league:'ita.1',          label:'Serie A',          crestA:'#123a2b', crestB:'#3a3a12', color:'#B98CFF'},
+    {sport:'soccer',     league:'ger.1',          label:'Bundesliga',       crestA:'#2b1c3a', crestB:'#3a1414', color:'#33D17E'},
+    {sport:'soccer',     league:'fra.1',          label:'Ligue 1',          crestA:'#12203a', crestB:'#3a1414', color:'#4E8CFF'},
+    {sport:'basketball', league:'nba',            label:'NBA',              crestA:'#123a2b', crestB:'#3a2b12', color:'#F5A623'},
+    {sport:'baseball',   league:'mlb',             label:'MLB',             crestA:'#2b1c3a', crestB:'#123030', color:'#FF4D5E'},
+    {sport:'hockey',     league:'nhl',            label:'NHL',              crestA:'#3a3a12', crestB:'#122a3a', color:'#B98CFF'},
+  ];
+
+  // Renders the "Live Now" sidebar from real league data. counts = {label: liveCount}
+  function renderLeagueSidebar(counts){
+    const leagueList = document.getElementById('leagueList');
+    leagueList.innerHTML = LEAGUES.map(lg=>`<div class="leaguerow">
+      <div class="l-left"><div class="flag" style="background:${lg.color}">${lg.label.slice(0,1)}</div>${lg.label}</div>
+      <div class="count">${counts && (lg.label in counts) ? counts[lg.label] : '–'}</div>
+    </div>`).join('');
+  }
+  renderLeagueSidebar(); // initial render with real names, counts fill in once live data loads
 
   const popularList = document.getElementById('popularList');
   popular.forEach(p=>{
@@ -974,19 +990,6 @@
   const statusText = document.getElementById('dataStatusText');
   const liveCountEl = document.getElementById('liveCount');
 
-  const LEAGUES = [
-    {sport:'soccer',     league:'fifa.world',     label:'FIFA World Cup',   crestA:'#1c3a2b', crestB:'#3a1c1c'},
-    {sport:'soccer',     league:'uefa.champions', label:'Champions League', crestA:'#12203a', crestB:'#2b123a'},
-    {sport:'soccer',     league:'eng.1',          label:'Premier League',   crestA:'#1c2b4a', crestB:'#3a1414'},
-    {sport:'soccer',     league:'esp.1',          label:'La Liga',          crestA:'#3a1414', crestB:'#f5a62333'},
-    {sport:'soccer',     league:'ita.1',          label:'Serie A',          crestA:'#123a2b', crestB:'#3a3a12'},
-    {sport:'soccer',     league:'ger.1',          label:'Bundesliga',       crestA:'#2b1c3a', crestB:'#3a1414'},
-    {sport:'soccer',     league:'fra.1',          label:'Ligue 1',          crestA:'#12203a', crestB:'#3a1414'},
-    {sport:'basketball', league:'nba',            label:'NBA',              crestA:'#123a2b', crestB:'#3a2b12'},
-    {sport:'baseball',   league:'mlb',             label:'MLB',             crestA:'#2b1c3a', crestB:'#123030'},
-    {sport:'hockey',     league:'nhl',            label:'NHL',              crestA:'#3a3a12', crestB:'#122a3a'},
-  ];
-
   function fmtDay(iso){
     const d = new Date(iso);
     return d.toLocaleDateString(undefined, { weekday:'short', month:'short', day:'numeric' });
@@ -1127,6 +1130,10 @@
     liveCountEl.textContent = live.length
       ? `${live.length} live match${live.length>1?'es':''} across ${LEAGUES.length} leagues`
       : `No live games right now — showing next scheduled matches`;
+
+    const liveCounts = {};
+    LEAGUES.forEach(lg=>{ liveCounts[lg.label] = live.filter(e=>e.league === lg.label).length; });
+    renderLeagueSidebar(liveCounts);
   }
 
   // allow tickerHTML to accept custom data (falls back to module-level tickerData)
