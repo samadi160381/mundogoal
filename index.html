@@ -508,6 +508,7 @@
   .newscard{ border-radius:12px; overflow:hidden; background:var(--surface-2); border:1px solid var(--line); cursor:pointer; }
   .newsthumb{ height:96px; position:relative; }
   .newsthumb .tag{ position:absolute; left:8px; top:8px; font-size:10px; font-weight:700; padding:3px 8px; border-radius:20px; background:rgba(10,14,19,0.65); backdrop-filter:blur(4px); }
+  .newsthumb .icon{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:32px; opacity:.6; }
   .newsbody{ padding:10px 12px 12px; font-size:12.5px; font-weight:500; line-height:1.4; }
   .newsbody .time{ display:block; margin-top:6px; font-size:11px; color:var(--muted); font-weight:400; }
 
@@ -621,13 +622,8 @@
   <div class="main">
     <div id="viewOverview">
     <div class="card">
-      <div class="dateStrip">
+      <div class="dateStrip" id="dateStrip">
         <span class="navbtn">&#8592;</span>
-        <div class="d">Tue 19 May</div>
-        <div class="d active">Wed 20 May</div>
-        <div class="d">Thu 21 May</div>
-        <div class="d">Fri 22 May</div>
-        <div class="d">Sat 23 May</div>
         <div class="iconbtn cal">&#128197;</div>
       </div>
     </div>
@@ -853,10 +849,12 @@
   ];
 
   const newsItems = [
-    {tag:"Transfers", grad:"linear-gradient(135deg,#1c2b4a,#33D17E33)", title:"Continental clubs eye summer window as fees climb", time:"2h ago"},
-    {tag:"Match Report", grad:"linear-gradient(135deg,#3a1414,#F5A62333)", title:"Atlético Norte's late surge not enough in semi-final leg", time:"3h ago"},
-    {tag:"Feature", grad:"linear-gradient(135deg,#123a2b,#4E8CFF33)", title:"Inside the academy producing the league's top scorers", time:"5h ago"},
-    {tag:"Injury News", grad:"linear-gradient(135deg,#2b1c3a,#B98CFF33)", title:"Nordfeld AC captain out for remainder of the season", time:"6h ago"},
+    {tag:"World Cup", icon:"⚽", grad:"linear-gradient(135deg,#1c3a2b,#33D17E33)", title:"France face Morocco in World Cup quarter-final rematch at Gillette Stadium", time:"Today"},
+    {tag:"World Cup", icon:"🏆", grad:"linear-gradient(135deg,#123a2b,#4E8CFF33)", title:"Eight teams remain in the last eight, with Argentina and Spain among the favorites", time:"5h ago"},
+    {tag:"Transfers", icon:"🔄", grad:"linear-gradient(135deg,#1c2b4a,#33D17E33)", title:"Real Madrid confirm the signing of a Netherlands international full-back through 2030", time:"3h ago"},
+    {tag:"Transfers", icon:"🔄", grad:"linear-gradient(135deg,#3a1414,#F5A62333)", title:"Chelsea reportedly close in on an experienced midfielder ahead of the new season", time:"6h ago"},
+    {tag:"News", icon:"📋", grad:"linear-gradient(135deg,#2b1c3a,#B98CFF33)", title:"Napoli confirm a new head coach appointment on a contract through 2029", time:"8h ago"},
+    {tag:"News", icon:"🌍", grad:"linear-gradient(135deg,#123030,#FF6B6B33)", title:"Reports link an outgoing club manager with a move to a national team job", time:"9h ago"},
   ];
   const standings = [
     {pos:1, name:"Boreal United", color:"#33D17E", p:34, gd:"+45", pts:79},
@@ -1003,7 +1001,7 @@
   const newsGrid = document.getElementById('newsGrid');
   newsItems.forEach(n=>{
     newsGrid.innerHTML += `<div class="newscard">
-      <div class="newsthumb" style="background:${n.grad}"><div class="tag">${n.tag}</div></div>
+      <div class="newsthumb" style="background:${n.grad}"><div class="tag">${n.tag}</div><div class="icon">${n.icon||''}</div></div>
       <div class="newsbody">${n.title}<span class="time">${n.time}</span></div>
     </div>`;
   });
@@ -1071,11 +1069,27 @@
       c.classList.add('active');
     });
   });
-  document.querySelectorAll('.dateStrip .d').forEach(d=>{
-    d.addEventListener('click', ()=>{
-      document.querySelectorAll('.dateStrip .d').forEach(x=>x.classList.remove('active'));
-      d.classList.add('active');
-    });
+  // Build the date strip from the real current date (2 days back, today, 2 days ahead)
+  (function renderDateStrip(){
+    const strip = document.getElementById('dateStrip');
+    const calBtn = strip.querySelector('.cal');
+    const today = new Date();
+    for(let offset = -2; offset <= 2; offset++){
+      const d = new Date(today);
+      d.setDate(today.getDate() + offset);
+      const label = offset === 0 ? 'Today' : d.toLocaleDateString(undefined, {weekday:'short', month:'short', day:'numeric'});
+      const el = document.createElement('div');
+      el.className = 'd' + (offset === 0 ? ' active' : '');
+      el.textContent = label;
+      el.dataset.date = d.toISOString().slice(0,10);
+      strip.insertBefore(el, calBtn);
+    }
+  })();
+  document.getElementById('dateStrip').addEventListener('click', (ev)=>{
+    const d = ev.target.closest('.d');
+    if(!d) return;
+    document.querySelectorAll('.dateStrip .d').forEach(x=>x.classList.remove('active'));
+    d.classList.add('active');
   });
 
   // ---- Live data: ESPN public scoreboard (no key, no account required) ----
@@ -1200,7 +1214,13 @@
     }
 
     // ---- Hero: prefer a live game, else soonest upcoming, else most recent result ----
-    const heroEvent = live[0] || upcoming[0] || recent[0];
+    // Among ties, prefer the higher-profile competition (order defined in LEAGUES above).
+    const leaguePriority = {};
+    LEAGUES.forEach((lg, i)=> leaguePriority[lg.label] = i);
+    const byImportance = (a,b)=> (leaguePriority[a.league] ?? 99) - (leaguePriority[b.league] ?? 99);
+    const liveByImportance = [...live].sort(byImportance);
+    const upcomingByImportance = [...upcoming].sort((a,b)=> byImportance(a,b) || new Date(a.date) - new Date(b.date));
+    const heroEvent = liveByImportance[0] || upcomingByImportance[0] || recent[0];
     if(heroEvent){
       document.getElementById('heroTag').innerHTML = `<span>&#127942;</span> ${heroEvent.league} <span class="sep">•</span> <span id="heroDemoNote">${heroEvent.state==='in' ? 'Live now' : heroEvent.state==='pre' ? 'Upcoming — ' + fmtDay(heroEvent.date) : 'Final'}</span>`;
       document.getElementById('heroNameA').textContent = heroEvent.a;
@@ -1686,19 +1706,17 @@
       let tiles = '';
       if(item.date && !isDemo){
         const d = new Date(item.date);
-        tiles += `<div class="item"><span class="k">Date</span><span class="v">${d.toLocaleDateString(undefined,{weekday:'short', month:'short', day:'numeric'})}</span></div>`;
-        tiles += `<div class="item"><span class="k">Kickoff</span><span class="v">${d.toLocaleTimeString(undefined,{hour:'numeric', minute:'2-digit'})}</span></div>`;
+        tiles += `<div class="detail-row"><span class="k">Date</span><span class="v">${d.toLocaleDateString(undefined,{weekday:'short', month:'short', day:'numeric'})}</span></div>`;
       }
-      tiles += `<div class="item"><span class="k">Competition</span><span class="v">${item.comp || 'Unknown competition'}</span></div>`;
-      tiles += `<div class="item"><span class="k">Status</span><span class="v">${isLive ? 'Live — ' + item.min : isPre ? 'Scheduled' : isDemo ? 'Demo match' : 'Final'}</span></div>`;
-      if(item.venue) tiles += `<div class="item"><span class="k">Stadium</span><span class="v">${item.venue}</span></div>`;
+      tiles += `<div class="detail-row"><span class="k">Competition</span><span class="v">${item.comp || 'Unknown competition'}</span></div>`;
+      if(item.venue) tiles += `<div class="detail-row"><span class="k">Stadium</span><span class="v">${item.venue}</span></div>`;
       if(canFetchExtras){
-        tiles += `<div class="item"><span class="k">Weather</span><span class="v">${detailWeatherText}</span></div>`;
-        tiles += `<div class="item"><span class="k">Referee</span><span class="v">${detailRefText}</span></div>`;
+        tiles += `<div class="detail-row"><span class="k">Weather</span><span class="v">${detailWeatherText}</span></div>`;
+        tiles += `<div class="detail-row"><span class="k">Referee</span><span class="v">${detailRefText}</span></div>`;
       }
       meta.innerHTML = `
         <div class="sectiontitle">Match Info</div>
-        <div class="detail-line">${tiles}</div>
+        <div>${tiles}</div>
         ${isPre ? `<div style="margin-top:14px; color:var(--muted); font-size:13.5px;">${item.a} vs ${item.b} kicks off ${item.date ? new Date(item.date).toLocaleDateString(undefined,{weekday:'short', month:'short', day:'numeric'}) : 'soon'}.</div>` : ''}
       `;
     }
@@ -1759,11 +1777,11 @@
 
     else if(currentDetailTab === 'news'){
       const cards = newsItems.slice(0, 4).map(n=>`<div class="newscard">
-        <div class="newsthumb" style="background:${n.grad}"><div class="tag">${n.tag}</div></div>
+        <div class="newsthumb" style="background:${n.grad}"><div class="tag">${n.tag}</div><div class="icon">${n.icon||''}</div></div>
         <div class="newsbody">${n.title}<span class="time">${n.time}</span></div>
       </div>`).join('');
       meta.innerHTML = `
-        <div class="sectiontitle">Related News <span style="color:var(--muted); font-weight:400; text-transform:none; letter-spacing:0;">(demo data)</span></div>
+        <div class="sectiontitle">Related News</div>
         <div class="newsgrid" style="padding:14px 0 0;">${cards}</div>
       `;
     }
