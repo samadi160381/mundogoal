@@ -509,6 +509,30 @@
   .newsthumb{ height:96px; position:relative; }
   .newsthumb .tag{ position:absolute; left:8px; top:8px; font-size:10px; font-weight:700; padding:3px 8px; border-radius:20px; background:rgba(10,14,19,0.65); backdrop-filter:blur(4px); }
   .newsthumb .icon{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:32px; opacity:.6; }
+
+  /* ---------- Article modal ---------- */
+  .article-overlay{
+    position:fixed; inset:0; background:rgba(6,9,13,0.72); backdrop-filter:blur(3px);
+    display:flex; align-items:flex-start; justify-content:center; padding:40px 16px;
+    z-index:100; overflow-y:auto;
+  }
+  .article-modal{
+    background:var(--surface); border:1px solid var(--line); border-radius:16px;
+    max-width:640px; width:100%; overflow:hidden; position:relative; margin-bottom:40px;
+  }
+  .article-close{
+    position:absolute; top:14px; right:14px; width:32px; height:32px; border-radius:50%;
+    background:rgba(10,14,19,0.65); backdrop-filter:blur(4px); display:flex; align-items:center;
+    justify-content:center; cursor:pointer; font-size:14px; color:var(--text); z-index:2;
+  }
+  .article-close:hover{ background:rgba(10,14,19,0.9); }
+  .article-hero{ height:180px; position:relative; display:flex; align-items:center; justify-content:center; font-size:64px; opacity:.7; }
+  .article-body-wrap{ padding:22px 26px 30px; }
+  .article-tag{ font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--pitch); margin-bottom:10px; }
+  .article-title{ font-family:'Space Grotesk', sans-serif; font-size:22px; font-weight:700; line-height:1.3; margin-bottom:8px; }
+  .article-meta{ font-size:12.5px; color:var(--muted); margin-bottom:18px; padding-bottom:18px; border-bottom:1px solid var(--line); }
+  .article-text p{ font-size:14.5px; line-height:1.7; color:var(--text); margin-bottom:14px; }
+  .article-text p:last-child{ margin-bottom:0; }
   .newsbody{ padding:10px 12px 12px; font-size:12.5px; font-weight:500; line-height:1.4; }
   .newsbody .time{ display:block; margin-top:6px; font-size:11px; color:var(--muted); font-weight:400; }
 
@@ -683,7 +707,7 @@
     <div class="card">
       <div class="newshead">
         <div class="sectiontitle">Upcoming Fixtures</div>
-        <div style="font-size:12.5px; color:var(--muted);">Real Premier League fixtures</div>
+        <div style="font-size:12.5px; color:var(--muted);" id="fixturesSubtitle">Real fixtures across all leagues</div>
       </div>
       <div id="fixtureList"></div>
     </div>
@@ -808,6 +832,20 @@
 
 </div>
 
+<!-- ARTICLE MODAL -->
+<div id="articleOverlay" class="article-overlay" style="display:none;">
+  <div class="article-modal">
+    <div class="article-close" id="articleClose">&#10005;</div>
+    <div class="article-hero" id="articleHero"></div>
+    <div class="article-body-wrap">
+      <div class="article-tag" id="articleTag"></div>
+      <div class="article-title" id="articleTitle"></div>
+      <div class="article-meta" id="articleMeta"></div>
+      <div class="article-text" id="articleText"></div>
+    </div>
+  </div>
+</div>
+
 <script>
   // ---- data ----
   const leagues = [
@@ -849,12 +887,42 @@
   ];
 
   const newsItems = [
-    {tag:"World Cup", icon:"⚽", grad:"linear-gradient(135deg,#1c3a2b,#33D17E33)", title:"France face Morocco in World Cup quarter-final rematch at Gillette Stadium", time:"Today"},
-    {tag:"World Cup", icon:"🏆", grad:"linear-gradient(135deg,#123a2b,#4E8CFF33)", title:"Eight teams remain in the last eight, with Argentina and Spain among the favorites", time:"5h ago"},
-    {tag:"Transfers", icon:"🔄", grad:"linear-gradient(135deg,#1c2b4a,#33D17E33)", title:"Real Madrid confirm the signing of a Netherlands international full-back through 2030", time:"3h ago"},
-    {tag:"Transfers", icon:"🔄", grad:"linear-gradient(135deg,#3a1414,#F5A62333)", title:"Chelsea reportedly close in on an experienced midfielder ahead of the new season", time:"6h ago"},
-    {tag:"News", icon:"📋", grad:"linear-gradient(135deg,#2b1c3a,#B98CFF33)", title:"Napoli confirm a new head coach appointment on a contract through 2029", time:"8h ago"},
-    {tag:"News", icon:"🌍", grad:"linear-gradient(135deg,#123030,#FF6B6B33)", title:"Reports link an outgoing club manager with a move to a national team job", time:"9h ago"},
+    {tag:"World Cup", icon:"⚽", grad:"linear-gradient(135deg,#1c3a2b,#33D17E33)", title:"France face Morocco in World Cup quarter-final rematch at Gillette Stadium", time:"Today",
+      body:[
+        "The 2026 World Cup quarter-finals continue today as France take on Morocco at Gillette Stadium in Foxborough, Massachusetts, in a repeat of their semi-final meeting four years ago.",
+        "France arrive as one of the tournament's standout sides, having cruised through the group stage and round of 16 without much resistance. Morocco, the last African nation left in the competition, reached this stage by eliminating co-hosts Canada in the previous round and will again be without a key midfielder through injury.",
+        "A win would send France into the semi-finals in search of a third World Cup title, while a Morocco victory would be the country's first-ever appearance in a World Cup final four. Kickoff is set for late afternoon local time, with both fan bases expected to be well represented inside the stadium."
+      ]},
+    {tag:"World Cup", icon:"🏆", grad:"linear-gradient(135deg,#123a2b,#4E8CFF33)", title:"Eight teams remain in the last eight, with Argentina and Spain among the favorites", time:"5h ago",
+      body:[
+        "With the group stage and round of 16 complete, eight nations remain in the hunt for the 2026 World Cup: France, Morocco, Spain, Belgium, Norway, England, Argentina and Switzerland.",
+        "Notably, both Brazil and Germany failed to reach the quarter-finals for the first time in the tournament's history, opening the door for less traditional contenders. The defending champions, Argentina, face Switzerland later in the round, while Spain and Belgium meet in Los Angeles and Norway takes on England in Miami.",
+        "The individual scoring race is also heating up, with the tournament's top forwards separated by only a handful of goals heading into the final rounds before the semi-finals."
+      ]},
+    {tag:"Transfers", icon:"🔄", grad:"linear-gradient(135deg,#1c2b4a,#33D17E33)", title:"Real Madrid confirm the signing of a Netherlands international full-back through 2030", time:"3h ago",
+      body:[
+        "Real Madrid have officially confirmed the signing of a Netherlands international right-back, who joins on a contract running through 2030 to strengthen the club's defensive options.",
+        "The move continues a busy summer transfer window for the Spanish giants, who have been active in reshaping their squad ahead of the new season. The club's sporting management described the signing as part of a broader plan to balance experience with long-term squad building.",
+        "The new arrival is expected to compete for a starting role on the right side of defense once pre-season training gets underway next month."
+      ]},
+    {tag:"Transfers", icon:"🔄", grad:"linear-gradient(135deg,#3a1414,#F5A62333)", title:"Chelsea reportedly close in on an experienced midfielder ahead of the new season", time:"6h ago",
+      body:[
+        "Chelsea are reported to be closing in on a deal for an experienced holding midfielder, with a verbal agreement said to be in place ahead of a formal transfer this summer.",
+        "The move comes as the London club looks to add depth and experience to midfield following uncertainty over the future of one of their current squad members. Reports suggest the transfer fee and personal terms are close to being finalized, with an announcement possible in the coming weeks.",
+        "The player would arrive with a wealth of top-level experience, and Chelsea's coaching staff are said to see him as a steadying influence for a young squad."
+      ]},
+    {tag:"News", icon:"📋", grad:"linear-gradient(135deg,#2b1c3a,#B98CFF33)", title:"Napoli confirm a new head coach appointment on a contract through 2029", time:"8h ago",
+      body:[
+        "Napoli have confirmed the appointment of a new head coach on a contract running through 2029, ending weeks of speculation about the club's plans for next season.",
+        "The Italian club said the appointment reflects a desire for continuity and long-term planning after a period of change in the dugout. The incoming coach inherits a squad that will be looking to build on recent domestic form and push for European qualification.",
+        "Pre-season preparations are expected to begin shortly, with the club's board saying it will back the new appointment in the remainder of the transfer window."
+      ]},
+    {tag:"News", icon:"🌍", grad:"linear-gradient(135deg,#123030,#FF6B6B33)", title:"Reports link an outgoing club manager with a move to a national team job", time:"9h ago",
+      body:[
+        "A well-known club manager departing his current post is being linked with a move into international football, according to multiple reports circulating this week.",
+        "If confirmed, the move would mark a significant shift for a coach who has spent recent years exclusively in club football, and would come at a notable moment with a major international tournament having just taken place.",
+        "National federations have increasingly looked to experienced club coaches to lead their sides, and sources suggest talks are at an advanced stage, though nothing has been formally announced by either party."
+      ]},
   ];
   const standings = [
     {pos:1, name:"Boreal United", color:"#33D17E", p:34, gd:"+45", pts:79},
@@ -999,11 +1067,35 @@
   renderFixtures(fixtures);
 
   const newsGrid = document.getElementById('newsGrid');
-  newsItems.forEach(n=>{
-    newsGrid.innerHTML += `<div class="newscard">
+  newsItems.forEach((n,i)=>{
+    newsGrid.innerHTML += `<div class="newscard" data-idx="${i}">
       <div class="newsthumb" style="background:${n.grad}"><div class="tag">${n.tag}</div><div class="icon">${n.icon||''}</div></div>
       <div class="newsbody">${n.title}<span class="time">${n.time}</span></div>
     </div>`;
+  });
+  newsGrid.querySelectorAll('.newscard').forEach(card=>{
+    card.addEventListener('click', ()=> openArticle(+card.dataset.idx));
+  });
+
+  // ---- Article modal ----
+  function openArticle(idx){
+    const n = newsItems[idx];
+    if(!n) return;
+    document.getElementById('articleHero').style.background = n.grad;
+    document.getElementById('articleHero').textContent = n.icon || '';
+    document.getElementById('articleTag').textContent = n.tag;
+    document.getElementById('articleTitle').textContent = n.title;
+    document.getElementById('articleMeta').textContent = n.time;
+    document.getElementById('articleText').innerHTML = (n.body || []).map(p=>`<p>${p}</p>`).join('');
+    document.getElementById('articleOverlay').style.display = 'flex';
+    document.getElementById('articleOverlay').scrollTop = 0;
+  }
+  function closeArticle(){
+    document.getElementById('articleOverlay').style.display = 'none';
+  }
+  document.getElementById('articleClose').addEventListener('click', closeArticle);
+  document.getElementById('articleOverlay').addEventListener('click', (ev)=>{
+    if(ev.target.id === 'articleOverlay') closeArticle();
   });
 
   const standingsList = document.getElementById('standingsList');
@@ -1117,7 +1209,13 @@
   }
 
   async function fetchLeague(lg){
-    const url = `https://site.api.espn.com/apis/site/v2/sports/${lg.sport}/${lg.league}/scoreboard`;
+    // Request a date range (today through the next 10 days) so upcoming fixtures
+    // show up for every league, not just whatever happens to be on today.
+    const start = new Date();
+    const end = new Date();
+    end.setDate(start.getDate() + 10);
+    const fmt = d => `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`;
+    const url = `https://site.api.espn.com/apis/site/v2/sports/${lg.sport}/${lg.league}/scoreboard?dates=${fmt(start)}-${fmt(end)}`;
     const res = await fetch(url);
     if(!res.ok) throw new Error('HTTP ' + res.status);
     const data = await res.json();
@@ -1555,10 +1653,13 @@
   // ---- News view (demo data, full grid) ----
   function renderNewsFullView(){
     const el = document.getElementById('newsContentFull');
-    el.innerHTML = newsItems.map(n=>`<div class="newscard">
-      <div class="newsthumb" style="background:${n.grad}"><div class="tag">${n.tag}</div></div>
+    el.innerHTML = newsItems.map((n,i)=>`<div class="newscard" data-idx="${i}">
+      <div class="newsthumb" style="background:${n.grad}"><div class="tag">${n.tag}</div><div class="icon">${n.icon||''}</div></div>
       <div class="newsbody">${n.title}<span class="time">${n.time}</span></div>
     </div>`).join('');
+    el.querySelectorAll('.newscard').forEach(card=>{
+      card.addEventListener('click', ()=> openArticle(+card.dataset.idx));
+    });
   }
 
   // ---- Favorites view ----
@@ -1776,7 +1877,7 @@
     }
 
     else if(currentDetailTab === 'news'){
-      const cards = newsItems.slice(0, 4).map(n=>`<div class="newscard">
+      const cards = newsItems.slice(0, 4).map((n,i)=>`<div class="newscard" data-idx="${i}">
         <div class="newsthumb" style="background:${n.grad}"><div class="tag">${n.tag}</div><div class="icon">${n.icon||''}</div></div>
         <div class="newsbody">${n.title}<span class="time">${n.time}</span></div>
       </div>`).join('');
@@ -1784,6 +1885,9 @@
         <div class="sectiontitle">Related News</div>
         <div class="newsgrid" style="padding:14px 0 0;">${cards}</div>
       `;
+      meta.querySelectorAll('.newscard').forEach(card=>{
+        card.addEventListener('click', ()=> openArticle(+card.dataset.idx));
+      });
     }
   }
 
