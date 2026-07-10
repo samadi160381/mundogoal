@@ -1407,6 +1407,88 @@
     </div>`;
   });
 
+  // ---- Real data: Standings via ESPN (free, no key, safe for all leagues) ----
+  // and Top Scorers via API-Football through our own /api/scorers proxy
+  // (keeps the API key server-side and caches heavily so the free-trial
+  // request quota is never at risk regardless of site traffic).
+  const API_FOOTBALL_LEAGUE_IDS = {
+    'fifa.world': 1, 'uefa.champions': 2, 'eng.1': 39, 'esp.1': 140,
+    'ita.1': 135, 'ger.1': 78, 'fra.1': 61, 'uefa.europa_qual': 3,
+  };
+
+  function setSectionLabel(containerId, text){
+    const card = document.getElementById(containerId)?.closest('.card');
+    const badge = card?.querySelector('.sectiontitle span');
+    if(badge) badge.textContent = text;
+  }
+
+  async function loadStandings(leagueCode, leagueLabel){
+    try{
+      const res = await fetch(`https://site.api.espn.com/apis/v2/sports/soccer/${leagueCode}/standings`);
+      if(!res.ok) throw new Error('standings fetch failed');
+      const data = await res.json();
+      const entries = data?.children?.[0]?.standings?.entries || data?.standings?.[0]?.entries;
+      if(!entries || !entries.length) throw new Error('no standings data');
+      const rows = entries.slice(0,5).map((e,i)=>{
+        const st = Object.fromEntries((e.stats||[]).map(s=>[s.name, s.value]));
+        const gd = st.pointDifferential ?? st.goalDifferential ?? 0;
+        return {
+          pos: i+1,
+          name: e.team?.displayName || e.team?.name || 'Unknown',
+          color: e.team?.color ? `#${e.team.color}` : '#33D17E',
+          p: st.gamesPlayed ?? '–',
+          gd: gd > 0 ? `+${gd}` : `${gd}`,
+          pts: st.points ?? '–',
+        };
+      });
+      standingsList.innerHTML = rows.map(s=>`<div class="standingrow">
+        <div class="pos">${s.pos}</div>
+        <div class="team"><div class="team-dot" style="background:${s.color}"></div>${s.name}</div>
+        <div class="num">${s.p}</div>
+        <div class="num">${s.gd}</div>
+        <div class="pts">${s.pts}</div>
+      </div>`).join('');
+      setSectionLabel('standingsList', `(${leagueLabel})`);
+    }catch(err){
+      console.warn('Standings live fetch failed, keeping demo data', err);
+    }
+  }
+
+  async function loadTopScorers(leagueCode, leagueLabel){
+    const apiId = API_FOOTBALL_LEAGUE_IDS[leagueCode];
+    if(!apiId) return; // no API-Football mapping for this league — leave demo data
+    try{
+      const res = await fetch(`/api/scorers?league=${apiId}`);
+      if(!res.ok) throw new Error('scorers fetch failed');
+      const data = await res.json();
+      if(!data.scorers || !data.scorers.length) throw new Error('no scorer data');
+      scorersList.innerHTML = data.scorers.map((s,i)=>`<div class="scorerrow">
+        <div class="rank">${i+1}</div>
+        <div class="scorer-av" style="background-image:url('${s.photo}'); background-size:cover;"></div>
+        <div class="name">${s.name} <span class="club">${s.club}</span></div>
+        <div class="goals">${s.goals}</div>
+      </div>`).join('');
+      setSectionLabel('scorersList', `(${leagueLabel})`);
+    }catch(err){
+      console.warn('Top scorers live fetch failed, keeping demo data', err);
+    }
+  }
+
+  // Default league on first load
+  loadStandings('eng.1', 'Premier League');
+  loadTopScorers('eng.1', 'Premier League');
+
+  // Refresh both when a league is picked from the sidebar
+  document.getElementById('leagueList').addEventListener('click', (ev)=>{
+    const row = ev.target.closest('.leaguerow');
+    if(!row) return;
+    const lg = LEAGUES.find(l => l.label === row.dataset.league);
+    if(lg && lg.sport === 'soccer'){
+      loadStandings(lg.league, lg.label);
+      loadTopScorers(lg.league, lg.label);
+    }
+  });
+
   const statsList = document.getElementById('statsList');
   const stats = [
     {label:"Possession", a:56, b:44, unit:"%"},
