@@ -506,9 +506,9 @@
   .newshead .sectiontitle{ margin:0; font-size:15px; text-transform:none; letter-spacing:0; color:var(--text); font-family:'Space Grotesk',sans-serif; font-weight:600;}
   .newsgrid{ display:grid; grid-template-columns:repeat(4,1fr); gap:14px; padding:14px 18px 20px; }
   .newscard{ border-radius:12px; overflow:hidden; background:var(--surface-2); border:1px solid var(--line); cursor:pointer; }
-  .newsthumb{ height:96px; position:relative; }
-  .newsthumb .tag{ position:absolute; left:8px; top:8px; font-size:10px; font-weight:700; padding:3px 8px; border-radius:20px; background:rgba(10,14,19,0.65); backdrop-filter:blur(4px); }
-  .newsthumb .icon{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:32px; opacity:.6; }
+  .newsthumb{ height:96px; position:relative; overflow:hidden; }
+  .newsthumb .tag{ position:absolute; left:8px; top:8px; font-size:10px; font-weight:700; padding:3px 8px; border-radius:20px; background:rgba(10,14,19,0.65); backdrop-filter:blur(4px); z-index:2; }
+  .newsthumb svg, .article-hero svg{ position:absolute; inset:0; width:100%; height:100%; display:block; }
 
   /* ---------- Article modal ---------- */
   .article-overlay{
@@ -526,7 +526,7 @@
     justify-content:center; cursor:pointer; font-size:14px; color:var(--text); z-index:2;
   }
   .article-close:hover{ background:rgba(10,14,19,0.9); }
-  .article-hero{ height:180px; position:relative; display:flex; align-items:center; justify-content:center; font-size:64px; opacity:.7; }
+  .article-hero{ height:180px; position:relative; overflow:hidden; }
   .article-body-wrap{ padding:22px 26px 30px; }
   .article-tag{ font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--pitch); margin-bottom:10px; }
   .article-title{ font-family:'Space Grotesk', sans-serif; font-size:22px; font-weight:700; line-height:1.3; margin-bottom:8px; }
@@ -680,7 +680,7 @@
 
     <div class="card">
       <div class="newshead" style="padding-bottom:0;">
-        <div class="sectiontitle" style="margin:0;">Live Matches</div>
+        <div class="sectiontitle" style="margin:0;" id="matchListTitle">Live Matches</div>
         <div style="font-size:12px; color:var(--muted);" id="liveCount">Fetching real data…</div>
       </div>
       <div class="tabbar" style="padding:14px 18px 0;">
@@ -886,42 +886,121 @@
     {day:"Mon Aug 24", time:"4:00 PM", a:"Fulham FC", b:"Chelsea FC", favA:30.9, favB:43.3},
   ];
 
+  // Illustrated cover banners for news cards/articles (original artwork, not photos —
+  // real match/press photos of real people aren't something this app can license or hotlink).
+  function artSVG(kind){
+    const banners = {
+      worldcup: `<svg viewBox="0 0 400 160" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+        <defs><linearGradient id="g-wc" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#0d2818"/><stop offset="1" stop-color="#1f4430"/>
+        </linearGradient></defs>
+        <rect width="400" height="160" fill="url(#g-wc)"/>
+        <path d="M-20,130 Q100,70 220,120 T440,95" stroke="#33D17E" stroke-width="2" fill="none" opacity="0.35"/>
+        <path d="M-20,155 Q120,100 240,145 T440,125" stroke="#33D17E" stroke-width="2" fill="none" opacity="0.2"/>
+        <circle cx="300" cy="55" r="30" fill="none" stroke="#eafcf1" stroke-width="2" opacity="0.85"/>
+        <polygon points="300,38 313,48 308,64 292,64 287,48" fill="#eafcf1" opacity="0.85"/>
+        <circle cx="80" cy="40" r="3" fill="#33D17E" opacity="0.6"/>
+        <circle cx="120" cy="25" r="2" fill="#33D17E" opacity="0.5"/>
+      </svg>`,
+      trophy: `<svg viewBox="0 0 400 160" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+        <defs><linearGradient id="g-tr" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#0f2a3d"/><stop offset="1" stop-color="#1e4a63"/>
+        </linearGradient></defs>
+        <rect width="400" height="160" fill="url(#g-tr)"/>
+        <circle cx="200" cy="80" r="70" fill="none" stroke="#4E8CFF" stroke-width="1.5" opacity="0.25"/>
+        <circle cx="200" cy="80" r="46" fill="none" stroke="#4E8CFF" stroke-width="1.5" opacity="0.3"/>
+        <g transform="translate(178,42)" fill="#fdd35b" opacity="0.9">
+          <path d="M0,10 h44 v18 a22,22 0 0 1 -44,0 z"/>
+          <path d="M-14,10 h14 v10 a14,14 0 0 1 -14,-10 z"/>
+          <path d="M44,10 h14 v10 a14,14 0 0 0 -14,-10 z"/>
+          <rect x="16" y="46" width="12" height="14"/>
+          <rect x="6" y="60" width="32" height="8" rx="2"/>
+        </g>
+      </svg>`,
+      transfer: `<svg viewBox="0 0 400 160" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+        <defs><linearGradient id="g-tf" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#17203d"/><stop offset="1" stop-color="#2a3a66"/>
+        </linearGradient></defs>
+        <rect width="400" height="160" fill="url(#g-tf)"/>
+        <path d="M70,60 H300" stroke="#4E8CFF" stroke-width="4" opacity="0.85"/>
+        <polygon points="300,60 284,50 284,70" fill="#4E8CFF" opacity="0.85"/>
+        <path d="M330,105 H100" stroke="#F5A623" stroke-width="4" opacity="0.85"/>
+        <polygon points="100,105 116,95 116,115" fill="#F5A623" opacity="0.85"/>
+        <circle cx="70" cy="60" r="5" fill="#4E8CFF"/>
+        <circle cx="330" cy="105" r="5" fill="#F5A623"/>
+      </svg>`,
+      news: `<svg viewBox="0 0 400 160" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+        <defs><linearGradient id="g-ns" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#241a33"/><stop offset="1" stop-color="#3a2b52"/>
+        </linearGradient></defs>
+        <rect width="400" height="160" fill="url(#g-ns)"/>
+        <rect x="150" y="45" width="100" height="70" rx="6" fill="#12101a" opacity="0.5" stroke="#B98CFF" stroke-width="1.5"/>
+        <rect x="164" y="60" width="72" height="6" rx="3" fill="#B98CFF" opacity="0.8"/>
+        <rect x="164" y="74" width="72" height="6" rx="3" fill="#B98CFF" opacity="0.5"/>
+        <rect x="164" y="88" width="48" height="6" rx="3" fill="#B98CFF" opacity="0.5"/>
+      </svg>`,
+      globe: `<svg viewBox="0 0 400 160" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+        <defs><linearGradient id="g-gl" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#1d2b2b"/><stop offset="1" stop-color="#3a1f22"/>
+        </linearGradient></defs>
+        <rect width="400" height="160" fill="url(#g-gl)"/>
+        <circle cx="200" cy="80" r="42" fill="none" stroke="#FF6B6B" stroke-width="1.5" opacity="0.85"/>
+        <ellipse cx="200" cy="80" rx="42" ry="16" fill="none" stroke="#FF6B6B" stroke-width="1.2" opacity="0.6"/>
+        <ellipse cx="200" cy="80" rx="18" ry="42" fill="none" stroke="#FF6B6B" stroke-width="1.2" opacity="0.6"/>
+        <path d="M158,80 H242" stroke="#FF6B6B" stroke-width="1.2" opacity="0.6"/>
+      </svg>`,
+    };
+    return banners[kind] || banners.news;
+  }
+
   const newsItems = [
-    {tag:"World Cup", icon:"⚽", grad:"linear-gradient(135deg,#1c3a2b,#33D17E33)", title:"France face Morocco in World Cup quarter-final rematch at Gillette Stadium", time:"Today",
+    {tag:"World Cup", art:"worldcup", title:"France face Morocco in World Cup quarter-final rematch at Gillette Stadium", time:"Today",
       body:[
-        "The 2026 World Cup quarter-finals continue today as France take on Morocco at Gillette Stadium in Foxborough, Massachusetts, in a repeat of their semi-final meeting four years ago.",
-        "France arrive as one of the tournament's standout sides, having cruised through the group stage and round of 16 without much resistance. Morocco, the last African nation left in the competition, reached this stage by eliminating co-hosts Canada in the previous round and will again be without a key midfielder through injury.",
-        "A win would send France into the semi-finals in search of a third World Cup title, while a Morocco victory would be the country's first-ever appearance in a World Cup final four. Kickoff is set for late afternoon local time, with both fan bases expected to be well represented inside the stadium."
+        "The 2026 World Cup quarter-finals continue today as France take on Morocco at Gillette Stadium in Foxborough, Massachusetts, in a repeat of their semi-final meeting four years ago. The fixture is the first of the tournament's remaining last-eight matches and carries significant weight for both nations' World Cup histories.",
+        "France arrive as one of the tournament's standout sides, having cruised through the group stage with wins built on a potent attack, before continuing that form into the knockout rounds. Their forward line has been especially productive, consistently creating and finishing chances at a higher rate than any other side left in the competition.",
+        "Morocco, the last African nation remaining in the tournament, reached this stage by eliminating co-hosts Canada in the round of 16, continuing a run that has already matched some of the country's best-ever World Cup performances. The squad will again be without a key attacking midfielder through injury, a blow to their creative options against a well-organized French defense.",
+        "Tactically, much of the pre-match discussion has centered on how Morocco's disciplined defensive shape might cope with France's pace on the counter-attack, and whether Morocco can replicate the game-management that carried them through the group stage and into the last sixteen.",
+        "A win would send France into the semi-finals in search of a third World Cup title, while a Morocco victory would be the country's first-ever appearance in a World Cup final four, surpassing their run to the semi-finals in 2022. Kickoff is set for late afternoon local time, with both fan bases expected to be well represented inside the stadium and a significant global television audience anticipated."
       ]},
-    {tag:"World Cup", icon:"🏆", grad:"linear-gradient(135deg,#123a2b,#4E8CFF33)", title:"Eight teams remain in the last eight, with Argentina and Spain among the favorites", time:"5h ago",
+    {tag:"World Cup", art:"trophy", title:"Eight teams remain in the last eight, with Argentina and Spain among the favorites", time:"5h ago",
       body:[
-        "With the group stage and round of 16 complete, eight nations remain in the hunt for the 2026 World Cup: France, Morocco, Spain, Belgium, Norway, England, Argentina and Switzerland.",
-        "Notably, both Brazil and Germany failed to reach the quarter-finals for the first time in the tournament's history, opening the door for less traditional contenders. The defending champions, Argentina, face Switzerland later in the round, while Spain and Belgium meet in Los Angeles and Norway takes on England in Miami.",
-        "The individual scoring race is also heating up, with the tournament's top forwards separated by only a handful of goals heading into the final rounds before the semi-finals."
+        "With the group stage and round of 16 now complete, eight nations remain in the hunt for the 2026 World Cup: France, Morocco, Spain, Belgium, Norway, England, Argentina and Switzerland. The quarter-finals will be played across four different host cities over the coming days.",
+        "Notably, both Brazil and Germany failed to reach the quarter-finals for the first time in the tournament's history, a result that has reshaped expectations for the rest of the competition and opened the door for less traditional contenders to make a deep run.",
+        "The defending champions, Argentina, face Switzerland later in the round in what is expected to be one of the tighter matchups on paper, given how resolutely the Swiss defense performed in the previous round. Spain and Belgium meet in Los Angeles in a heavyweight European clash, while Norway takes on England in Miami in a match that pits two of the tournament's most talked-about attacking talents against one another.",
+        "Beyond the results, the individual scoring race has become one of the storylines of the tournament. The competition's leading forwards are separated by only a handful of goals heading into the final rounds before the semi-finals, and a big night from any of them in the coming matches could shift the race for the tournament's top scorer.",
+        "Broadcasters and host cities are preparing for what is expected to be the highest-attended quarter-final round in the tournament's history, reflecting the scale of interest generated by this year's competition across all participating confederations."
       ]},
-    {tag:"Transfers", icon:"🔄", grad:"linear-gradient(135deg,#1c2b4a,#33D17E33)", title:"Real Madrid confirm the signing of a Netherlands international full-back through 2030", time:"3h ago",
+    {tag:"Transfers", art:"transfer", title:"Real Madrid confirm the signing of a Netherlands international full-back through 2030", time:"3h ago",
       body:[
-        "Real Madrid have officially confirmed the signing of a Netherlands international right-back, who joins on a contract running through 2030 to strengthen the club's defensive options.",
-        "The move continues a busy summer transfer window for the Spanish giants, who have been active in reshaping their squad ahead of the new season. The club's sporting management described the signing as part of a broader plan to balance experience with long-term squad building.",
-        "The new arrival is expected to compete for a starting role on the right side of defense once pre-season training gets underway next month."
+        "Real Madrid have officially confirmed the signing of a Netherlands international right-back, who joins on a contract running through 2030 to strengthen the club's defensive options heading into the new season.",
+        "The move continues a busy summer transfer window for the Spanish giants, who have been active in reshaping their squad following the end of last season. The club's sporting management described the signing as part of a broader plan to balance experienced international quality with long-term squad building, pointing to the player's track record at both club and international level as a key factor in the decision.",
+        "Financial details of the transfer have not been officially disclosed, though reports in Spanish media suggest the fee sits within the upper range of full-back transfers completed so far this summer, reflecting the player's standing as one of the more sought-after defenders available in the current market.",
+        "The new arrival is expected to compete for a starting role on the right side of defense once pre-season training gets underway next month, joining a defensive unit that has already seen turnover this summer as the club looks to refresh its backline ahead of a season that will include both domestic and European competition.",
+        "Supporters and pundits alike have pointed to the depth this signing adds to the squad, with some suggesting it also gives the coaching staff more tactical flexibility to rotate across a demanding fixture list once the season is fully underway."
       ]},
-    {tag:"Transfers", icon:"🔄", grad:"linear-gradient(135deg,#3a1414,#F5A62333)", title:"Chelsea reportedly close in on an experienced midfielder ahead of the new season", time:"6h ago",
+    {tag:"Transfers", art:"transfer", title:"Chelsea reportedly close in on an experienced midfielder ahead of the new season", time:"6h ago",
       body:[
-        "Chelsea are reported to be closing in on a deal for an experienced holding midfielder, with a verbal agreement said to be in place ahead of a formal transfer this summer.",
-        "The move comes as the London club looks to add depth and experience to midfield following uncertainty over the future of one of their current squad members. Reports suggest the transfer fee and personal terms are close to being finalized, with an announcement possible in the coming weeks.",
-        "The player would arrive with a wealth of top-level experience, and Chelsea's coaching staff are said to see him as a steadying influence for a young squad."
+        "Chelsea are reported to be closing in on a deal for an experienced holding midfielder, with a verbal agreement said to be in place ahead of a formal transfer this summer, according to multiple outlets tracking the club's transfer activity.",
+        "The move comes as the London club looks to add depth and experience to midfield following uncertainty over the future of one of their current squad members, who has been linked with a possible departure of his own in recent weeks.",
+        "Reports suggest the transfer fee and personal terms are close to being finalized, with an announcement possible in the coming weeks pending the completion of a medical and the usual administrative steps that accompany a cross-club transfer during the summer window.",
+        "The player in question would arrive with a wealth of top-level experience, having featured regularly for both club and country over an extended career, and Chelsea's coaching staff are said to see him as a steadying influence for a squad that skews notably younger than most of its Premier League rivals.",
+        "Should the move go through, it would mark one of the more experience-focused additions of Chelsea's summer business, following a run of transfer activity that has otherwise leaned heavily toward younger, developing talent."
       ]},
-    {tag:"News", icon:"📋", grad:"linear-gradient(135deg,#2b1c3a,#B98CFF33)", title:"Napoli confirm a new head coach appointment on a contract through 2029", time:"8h ago",
+    {tag:"News", art:"news", title:"Napoli confirm a new head coach appointment on a contract through 2029", time:"8h ago",
       body:[
-        "Napoli have confirmed the appointment of a new head coach on a contract running through 2029, ending weeks of speculation about the club's plans for next season.",
-        "The Italian club said the appointment reflects a desire for continuity and long-term planning after a period of change in the dugout. The incoming coach inherits a squad that will be looking to build on recent domestic form and push for European qualification.",
-        "Pre-season preparations are expected to begin shortly, with the club's board saying it will back the new appointment in the remainder of the transfer window."
+        "Napoli have confirmed the appointment of a new head coach on a contract running through 2029, ending weeks of speculation about the club's plans for next season following a change in the dugout.",
+        "The Italian club said the appointment reflects a desire for continuity and long-term planning, with the length of the contract seen as a signal of the board's confidence in the incoming coach's project. The club's statement emphasized alignment between the new coaching staff and the sporting director's long-term vision for the squad.",
+        "The incoming coach inherits a squad that will be looking to build on recent domestic form and push for a return to regular European qualification, a target the club has made explicit in recent public statements about its ambitions for the coming seasons.",
+        "Pre-season preparations are expected to begin shortly, with the club's board saying it will back the new appointment in the remainder of the transfer window, potentially freeing up funds for further additions to the first-team squad before the market closes at the end of the summer.",
+        "Fan reaction to the appointment has been largely positive so far, with many pointing to the coach's previous track record as reason for optimism, though some caution that a full assessment will only be possible once the season is underway."
       ]},
-    {tag:"News", icon:"🌍", grad:"linear-gradient(135deg,#123030,#FF6B6B33)", title:"Reports link an outgoing club manager with a move to a national team job", time:"9h ago",
+    {tag:"News", art:"globe", title:"Reports link an outgoing club manager with a move to a national team job", time:"9h ago",
       body:[
-        "A well-known club manager departing his current post is being linked with a move into international football, according to multiple reports circulating this week.",
-        "If confirmed, the move would mark a significant shift for a coach who has spent recent years exclusively in club football, and would come at a notable moment with a major international tournament having just taken place.",
-        "National federations have increasingly looked to experienced club coaches to lead their sides, and sources suggest talks are at an advanced stage, though nothing has been formally announced by either party."
+        "A well-known club manager departing his current post is being linked with a move into international football, according to multiple reports circulating this week from journalists who closely follow the coaching market.",
+        "If confirmed, the move would mark a significant shift for a coach who has spent recent years exclusively in club football, and would come at a notable moment, with a major international tournament having just taken place and several national federations reportedly reassessing their coaching setups as a result.",
+        "National federations have increasingly looked to experienced club coaches to lead their sides, viewing the switch to international management as a way to bring modern tactical approaches to squads that only assemble a handful of times each year outside of major tournaments.",
+        "Sources close to the discussions suggest talks are at an advanced stage, with the structure of a potential deal, including staff appointments and the length of a first contract, said to be under negotiation. Nothing has been formally announced by either party as of publication.",
+        "Should the move materialize, it would represent one of the more high-profile switches from club to international football in recent years, and is likely to prompt a reshuffle further down the managerial market as clubs react to the departure."
       ]},
   ];
   const standings = [
@@ -1024,6 +1103,52 @@
     });
   }
 
+  // Turns a raw fetched event into the shape renderMatches() expects
+  function toMatchRowItem(e){
+    const isLive = e.state === 'in';
+    const isPre = e.state === 'pre';
+    return {
+      min: isLive ? e.clock : isPre ? fmtTime(e.date) : 'Final',
+      cls: isLive ? (e.clock === 'Halftime' ? 'ht' : '') : (isPre ? 'q' : ''),
+      crestA: e.crestA, crestB: e.crestB, logoA: e.logoA, logoB: e.logoB, id: e.id, sport: e.sport, leagueCode: e.leagueCode, teamIdA: e.teamIdA, teamIdB: e.teamIdB,
+      a: e.a, b: e.b, sa: isPre ? '–' : e.sa, sb: isPre ? '–' : e.sb,
+      comp: e.league, sub: isLive ? 'Live now' : isPre ? 'Scheduled · ' + fmtDay(e.date) : 'Final',
+      star:false, state: e.state, date: e.date, venue: e.venue, broadcast: e.broadcast,
+    };
+  }
+
+  // Renders the "Live Matches" panel for whichever date is selected in the date strip.
+  // For today: live games first, falling back to today's next scheduled game.
+  // For any other day: every match scheduled that day, across all leagues.
+  function refreshMatchListPanel(){
+    const all = window.allRawEvents || [];
+    const todayISO = toLocalYMD(new Date());
+    const dateISO = selectedDateISO || todayISO;
+    const titleEl = document.getElementById('matchListTitle');
+
+    if(dateISO === todayISO){
+      const live = all.filter(e=>e.state === 'in');
+      if(titleEl) titleEl.textContent = 'Live Matches';
+      if(live.length){
+        renderMatches(live.slice(0,8).map(toMatchRowItem));
+        liveCountEl.textContent = `${live.length} live match${live.length===1?'':'es'} across ${LEAGUES.length} leagues`;
+      } else {
+        const todayScheduled = all.filter(e=>e.state==='pre' && toLocalYMD(new Date(e.date))===todayISO)
+          .sort((x,y)=> new Date(x.date) - new Date(y.date));
+        const list = todayScheduled.length ? todayScheduled : all.filter(e=>e.state==='pre').sort((x,y)=> new Date(x.date)-new Date(y.date));
+        renderMatches(list.slice(0,6).map(toMatchRowItem));
+        liveCountEl.textContent = 'No live matches right now — showing next scheduled';
+      }
+    } else {
+      const dayEvents = all.filter(e=> toLocalYMD(new Date(e.date)) === dateISO)
+        .sort((x,y)=> new Date(x.date) - new Date(y.date));
+      const label = new Date(dateISO + 'T00:00:00').toLocaleDateString(undefined,{weekday:'short', month:'short', day:'numeric'});
+      if(titleEl) titleEl.textContent = `Matches — ${label}`;
+      renderMatches(dayEvents.slice(0,12).map(toMatchRowItem));
+      liveCountEl.textContent = dayEvents.length ? `${dayEvents.length} match${dayEvents.length===1?'':'es'} scheduled` : 'No matches scheduled for this day';
+    }
+  }
+
   const fixtureList = document.getElementById('fixtureList');
   function renderFixtures(list){
     fixtureList.innerHTML = '';
@@ -1069,7 +1194,7 @@
   const newsGrid = document.getElementById('newsGrid');
   newsItems.forEach((n,i)=>{
     newsGrid.innerHTML += `<div class="newscard" data-idx="${i}">
-      <div class="newsthumb" style="background:${n.grad}"><div class="tag">${n.tag}</div><div class="icon">${n.icon||''}</div></div>
+      <div class="newsthumb">${artSVG(n.art)}<div class="tag">${n.tag}</div></div>
       <div class="newsbody">${n.title}<span class="time">${n.time}</span></div>
     </div>`;
   });
@@ -1081,8 +1206,7 @@
   function openArticle(idx){
     const n = newsItems[idx];
     if(!n) return;
-    document.getElementById('articleHero').style.background = n.grad;
-    document.getElementById('articleHero').textContent = n.icon || '';
+    document.getElementById('articleHero').innerHTML = artSVG(n.art);
     document.getElementById('articleTag').textContent = n.tag;
     document.getElementById('articleTitle').textContent = n.title;
     document.getElementById('articleMeta').textContent = n.time;
@@ -1161,6 +1285,9 @@
       c.classList.add('active');
     });
   });
+  function toLocalYMD(d){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+  let selectedDateISO = toLocalYMD(new Date());
+
   // Build the date strip from the real current date (2 days back, today, 2 days ahead)
   (function renderDateStrip(){
     const strip = document.getElementById('dateStrip');
@@ -1173,7 +1300,7 @@
       const el = document.createElement('div');
       el.className = 'd' + (offset === 0 ? ' active' : '');
       el.textContent = label;
-      el.dataset.date = d.toISOString().slice(0,10);
+      el.dataset.date = toLocalYMD(d);
       strip.insertBefore(el, calBtn);
     }
   })();
@@ -1182,6 +1309,8 @@
     if(!d) return;
     document.querySelectorAll('.dateStrip .d').forEach(x=>x.classList.remove('active'));
     d.classList.add('active');
+    selectedDateISO = d.dataset.date;
+    refreshMatchListPanel();
   });
 
   // ---- Live data: ESPN public scoreboard (no key, no account required) ----
@@ -1278,25 +1407,8 @@
     window.allRawEvents = allEvents;
     window.liveRawEvents = live;
 
-    // ---- Live matches list (overview card) ----
-    if(live.length){
-      renderMatches(live.slice(0,8).map(e=>({
-        min: e.clock, cls: e.clock === 'Halftime' ? 'ht' : '',
-        crestA: e.crestA, crestB: e.crestB, logoA: e.logoA, logoB: e.logoB, id: e.id, sport: e.sport, leagueCode: e.leagueCode, teamIdA: e.teamIdA, teamIdB: e.teamIdB,
-        a: e.a, b: e.b, sa: e.sa, sb: e.sb,
-        comp: e.league, sub: 'Live now', star:false,
-        state: e.state, date: e.date, venue: e.venue, broadcast: e.broadcast,
-      })));
-    } else {
-      // no live games anywhere right now — show soonest upcoming instead, clearly labeled
-      renderMatches(upcoming.slice(0,6).map(e=>({
-        min: fmtTime(e.date), cls: 'q',
-        crestA: e.crestA, crestB: e.crestB, logoA: e.logoA, logoB: e.logoB, id: e.id, sport: e.sport, leagueCode: e.leagueCode, teamIdA: e.teamIdA, teamIdB: e.teamIdB,
-        a: e.a, b: e.b, sa: '–', sb: '–',
-        comp: e.league, sub: 'Scheduled · ' + fmtDay(e.date), star:false,
-        state: e.state, date: e.date, venue: e.venue, broadcast: e.broadcast,
-      })));
-    }
+    // ---- Live matches list (overview card) — respects the selected date in the date strip ----
+    refreshMatchListPanel();
 
     // ---- Full Live view (dedicated page) ----
     renderLiveView(live, upcoming);
@@ -1654,7 +1766,7 @@
   function renderNewsFullView(){
     const el = document.getElementById('newsContentFull');
     el.innerHTML = newsItems.map((n,i)=>`<div class="newscard" data-idx="${i}">
-      <div class="newsthumb" style="background:${n.grad}"><div class="tag">${n.tag}</div><div class="icon">${n.icon||''}</div></div>
+      <div class="newsthumb">${artSVG(n.art)}<div class="tag">${n.tag}</div></div>
       <div class="newsbody">${n.title}<span class="time">${n.time}</span></div>
     </div>`).join('');
     el.querySelectorAll('.newscard').forEach(card=>{
@@ -1878,7 +1990,7 @@
 
     else if(currentDetailTab === 'news'){
       const cards = newsItems.slice(0, 4).map((n,i)=>`<div class="newscard" data-idx="${i}">
-        <div class="newsthumb" style="background:${n.grad}"><div class="tag">${n.tag}</div><div class="icon">${n.icon||''}</div></div>
+        <div class="newsthumb">${artSVG(n.art)}<div class="tag">${n.tag}</div></div>
         <div class="newsbody">${n.title}<span class="time">${n.time}</span></div>
       </div>`).join('');
       meta.innerHTML = `
