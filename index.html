@@ -3,38 +3,39 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MundoGoal — Live Football & Sports Scores, Fixtures, Standings & News</title>
-<meta name="description" content="Follow live football scores, fixtures, standings, head-to-head stats and the latest transfer news from the World Cup, Champions League, Premier League, La Liga, Serie A and more — all in one place on MundoGoal.">
+<title>FootMonde — Live Football & Sports Scores, Fixtures, Standings & News</title>
+<meta name="description" content="Follow live football scores, fixtures, standings, head-to-head stats and the latest transfer news from the World Cup, Champions League, Premier League, La Liga, Serie A and more — all in one place on FootMonde.">
 <meta name="keywords" content="live football scores, live scores, World Cup 2026, Champions League, Premier League, La Liga, football fixtures, league standings, football news, transfer news">
 <meta name="robots" content="index, follow">
-<meta name="author" content="MundoGoal">
-<link rel="canonical" href="https://mundogoal.vercel.app/">
+<meta name="author" content="FootMonde">
+<link rel="canonical" href="https://footmonde.vercel.app/">
 <meta name="theme-color" content="#0A0E13">
 
 <!-- Open Graph / Facebook -->
 <meta property="og:type" content="website">
-<meta property="og:site_name" content="MundoGoal">
-<meta property="og:title" content="MundoGoal — Live Football & Sports Scores, Fixtures & News">
+<meta property="og:site_name" content="FootMonde">
+<meta property="og:title" content="FootMonde — Live Football & Sports Scores, Fixtures & News">
 <meta property="og:description" content="Live scores, fixtures, standings and news from the World Cup, Champions League and top leagues worldwide — updated in real time.">
-<meta property="og:url" content="https://mundogoal.vercel.app/">
-<meta property="og:image" content="https://mundogoal.vercel.app/og-image.png">
+<meta property="og:url" content="https://footmonde.vercel.app/">
+<meta property="og:image" content="https://footmonde.vercel.app/og-image.png">
 
 <!-- Twitter -->
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="MundoGoal — Live Football & Sports Scores, Fixtures & News">
+<meta name="twitter:title" content="FootMonde — Live Football & Sports Scores, Fixtures & News">
 <meta name="twitter:description" content="Live scores, fixtures, standings and news from the World Cup, Champions League and top leagues worldwide — updated in real time.">
-<meta name="twitter:image" content="https://mundogoal.vercel.app/og-image.png">
+<meta name="twitter:image" content="https://footmonde.vercel.app/og-image.png">
 
-<link rel="icon" type="image/svg+xml" href="/favicon.svg">
-<link rel="icon" type="image/png" href="/favicon.png">
-<link rel="apple-touch-icon" href="/favicon.png">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/favicon-192.png">
+<link rel="apple-touch-icon" href="/favicon-192.png">
 
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
   "@type": "WebApplication",
-  "name": "MundoGoal",
-  "url": "https://mundogoal.vercel.app/",
+  "name": "FootMonde",
+  "url": "https://footmonde.vercel.app/",
   "description": "Live football and sports scores, fixtures, standings, head-to-head stats and news from the World Cup, Champions League and top leagues worldwide.",
   "applicationCategory": "SportsApplication",
   "operatingSystem": "Any",
@@ -647,7 +648,7 @@
 <header>
   <div class="brand">
     <div class="brand-mark"></div>
-    <h1 class="brand-name">Mundo<span>Goal</span></h1>
+    <h1 class="brand-name">Foot<span>Monde</span></h1>
   </div>
   <nav aria-label="Main navigation">
     <a href="#" class="active" id="navOverview">Overview</a>
@@ -892,7 +893,7 @@
 <footer class="site-footer">
   <div class="footer-inner">
     <div class="footer-brand">
-      <div class="brand-name" style="font-size:16px;">Mundo<span>Goal</span></div>
+      <div class="brand-name" style="font-size:16px;">Foot<span>Monde</span></div>
       <p>Live football and sports scores, fixtures, standings and news — updated in real time from around the world.</p>
     </div>
     <div class="footer-links">
@@ -913,7 +914,7 @@
     </div>
   </div>
   <div class="footer-bottom">
-    <span>&#169; <span id="footerYear"></span> MundoGoal. Live data via ESPN's public scoreboard API.</span>
+    <span>&#169; <span id="footerYear"></span> FootMonde. Live data via ESPN's public scoreboard API.</span>
   </div>
 </footer>
 
@@ -1191,11 +1192,11 @@
 
   // ---- My Teams (starts empty; persisted in this browser via localStorage) ----
   function getMyTeams(){
-    try{ return JSON.parse(localStorage.getItem('mundogoal_myteams') || '[]'); }
+    try{ return JSON.parse(localStorage.getItem('footmonde_myteams') || '[]'); }
     catch(e){ return []; }
   }
   function saveMyTeams(list){
-    try{ localStorage.setItem('mundogoal_myteams', JSON.stringify(list)); }catch(e){}
+    try{ localStorage.setItem('footmonde_myteams', JSON.stringify(list)); }catch(e){}
   }
   const myteamsList = document.getElementById('myteamsList');
   function renderMyTeamsList(){
@@ -1692,11 +1693,11 @@
 
   // ---- Favorites (persisted in this browser via localStorage) ----
   function getFavorites(){
-    try{ return JSON.parse(localStorage.getItem('mundogoal_favorites') || '[]'); }
+    try{ return JSON.parse(localStorage.getItem('footmonde_favorites') || '[]'); }
     catch(e){ return []; }
   }
   function saveFavorites(list){
-    try{ localStorage.setItem('mundogoal_favorites', JSON.stringify(list)); }catch(e){}
+    try{ localStorage.setItem('footmonde_favorites', JSON.stringify(list)); }catch(e){}
   }
   function makeFavKey(e){
     return `${e.comp || e.league || ''}|${e.a}|${e.b}`;

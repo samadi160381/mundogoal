@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://mundogoal.vercel.app/sitemap.xml
+Sitemap: https://footmonde.vercel.app/sitemap.xml
