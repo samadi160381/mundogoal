@@ -533,6 +533,14 @@
   .article-meta{ font-size:12.5px; color:var(--muted); margin-bottom:18px; padding-bottom:18px; border-bottom:1px solid var(--line); }
   .article-text p{ font-size:14.5px; line-height:1.7; color:var(--text); margin-bottom:14px; }
   .article-text p:last-child{ margin-bottom:0; }
+
+  .teampick-row{
+    display:flex; align-items:center; gap:10px; padding:12px 4px; border-top:1px solid var(--line);
+    cursor:pointer; font-size:14px;
+  }
+  .teampick-row:first-child{ border-top:none; }
+  .teampick-check{ font-size:12px; color:var(--muted); font-weight:600; }
+  .teampick-row.on .teampick-check{ color:var(--pitch); }
   .newsbody{ padding:10px 12px 12px; font-size:12.5px; font-weight:500; line-height:1.4; }
   .newsbody .time{ display:block; margin-top:6px; font-size:11px; color:var(--muted); font-weight:400; }
 
@@ -628,17 +636,16 @@
     <div class="card cardpad">
       <div class="sectiontitle">Live Now</div>
       <div id="leagueList"></div>
-      <div class="showmore">Show more &#9662;</div>
+      <div class="showmore" id="leagueShowMore">Show more &#9662;</div>
     </div>
     <div class="card cardpad">
       <div class="sectiontitle">Popular</div>
       <div id="popularList"></div>
-      <div class="showmore">Show more &#9662;</div>
     </div>
     <div class="card cardpad myteams">
       <div class="sectiontitle">My Teams</div>
       <div id="myteamsList"></div>
-      <div class="editbtn">Edit</div>
+      <div class="editbtn" id="myTeamsEditBtn">Edit</div>
     </div>
   </div>
 
@@ -798,7 +805,6 @@
           <div class="t" data-tab="lineups">Lineups</div>
           <div class="t" data-tab="h2h">H2H</div>
           <div class="t" data-tab="standings">Standings</div>
-          <div class="t" data-tab="news">News</div>
         </div>
       </div>
       <div class="card cardpad" id="detailMeta"></div>
@@ -846,6 +852,18 @@
   </div>
 </div>
 
+<!-- TEAM PICKER MODAL (edit My Teams) -->
+<div id="teamPickerOverlay" class="article-overlay" style="display:none;">
+  <div class="article-modal" style="max-width:420px;">
+    <div class="article-close" id="teamPickerClose">&#10005;</div>
+    <div class="article-body-wrap" style="padding-top:24px;">
+      <div class="article-title" style="font-size:18px;">My Teams</div>
+      <div class="article-meta" style="border-bottom:none; margin-bottom:6px; padding-bottom:0;">Tap a team to add or remove it.</div>
+      <div id="teamPickerList"></div>
+    </div>
+  </div>
+</div>
+
 <script>
   // ---- data ----
   const leagues = [
@@ -862,10 +880,19 @@
     {icon:"&#127944;", name:"Continental Football"},
     {icon:"&#127934;", name:"Grand Slam Tour"},
   ];
-  const myteams = [
+  // Catalog of teams the user can choose from in "My Teams" (Edit panel).
+  // "My Teams" itself starts empty until the user picks teams from here.
+  const TEAM_CATALOG = [
     {icon:"&#128293;", name:"Boreal United"},
     {icon:"&#128081;", name:"Real Continental"},
     {icon:"&#127775;", name:"FC Meridian"},
+    {icon:"&#9889;", name:"Costa Alta"},
+    {icon:"&#127774;", name:"Sociedad Real"},
+    {icon:"&#127942;", name:"Atlético Norte"},
+    {icon:"&#128007;", name:"Nordfeld AC"},
+    {icon:"&#128293;", name:"Atalanta Sur"},
+    {icon:"&#127936;", name:"Boreal Celtics"},
+    {icon:"&#128293;", name:"Marea Heat"},
   ];
   const matches = [
     {min:"78'", cls:"", crestA:"#1c2b4a", crestB:"#3a1414", a:"Real Continental", b:"Atlético Norte", sa:2, sb:1, comp:"Meridian Cup", sub:"Semi-finals · Leg 2 of 2", star:true},
@@ -1040,10 +1067,14 @@
     {sport:'soccer',     league:'uefa.europa_qual', label:'Europa League Qualifying', crestA:'#2b123a', crestB:'#123a2b', color:'#FF6B6B'},
   ];
 
+  const LEAGUE_COLLAPSED_COUNT = 6;
+  let leagueListExpanded = false;
+
   // Renders the "Live Now" sidebar from real league data. counts = {label: liveCount}
   function renderLeagueSidebar(counts){
     const leagueList = document.getElementById('leagueList');
-    leagueList.innerHTML = LEAGUES.map(lg=>`<div class="leaguerow" data-league="${lg.label}">
+    const visible = leagueListExpanded ? LEAGUES : LEAGUES.slice(0, LEAGUE_COLLAPSED_COUNT);
+    leagueList.innerHTML = visible.map(lg=>`<div class="leaguerow" data-league="${lg.label}">
       <div class="l-left"><div class="flag" style="background:${lg.color}">${lg.label.slice(0,1)}</div>${lg.label}</div>
       <div class="count">${counts && (lg.label in counts) ? counts[lg.label] : '–'}</div>
     </div>`).join('');
@@ -1053,17 +1084,78 @@
         showView('scores');
       });
     });
+    const showMoreBtn = document.getElementById('leagueShowMore');
+    if(LEAGUES.length <= LEAGUE_COLLAPSED_COUNT){
+      showMoreBtn.style.display = 'none';
+    } else {
+      showMoreBtn.style.display = 'flex';
+      showMoreBtn.innerHTML = leagueListExpanded ? 'Show less &#9652;' : 'Show more &#9662;';
+    }
   }
   renderLeagueSidebar(); // initial render with real names, counts fill in once live data loads
+  document.getElementById('leagueShowMore').addEventListener('click', ()=>{
+    leagueListExpanded = !leagueListExpanded;
+    renderLeagueSidebar(window.leagueLiveCounts);
+  });
 
   const popularList = document.getElementById('popularList');
   popular.forEach(p=>{
     popularList.innerHTML += `<div class="popularrow"><span class="dot-icon">${p.icon}</span>${p.name}</div>`;
   });
 
+  // ---- My Teams (starts empty; persisted in this browser via localStorage) ----
+  function getMyTeams(){
+    try{ return JSON.parse(localStorage.getItem('mundogoal_myteams') || '[]'); }
+    catch(e){ return []; }
+  }
+  function saveMyTeams(list){
+    try{ localStorage.setItem('mundogoal_myteams', JSON.stringify(list)); }catch(e){}
+  }
   const myteamsList = document.getElementById('myteamsList');
-  myteams.forEach(p=>{
-    myteamsList.innerHTML += `<div class="popularrow"><span class="dot-icon">${p.icon}</span>${p.name}</div>`;
+  function renderMyTeamsList(){
+    const mine = getMyTeams();
+    if(!mine.length){
+      myteamsList.innerHTML = `<div style="padding:10px 2px 4px; font-size:12.5px; color:var(--muted); line-height:1.5;">No teams yet — tap Edit to add your favorite teams.</div>`;
+      return;
+    }
+    myteamsList.innerHTML = mine.map(name=>{
+      const t = TEAM_CATALOG.find(c=>c.name===name) || {icon:'&#9917;', name};
+      return `<div class="popularrow"><span class="dot-icon">${t.icon}</span>${t.name}</div>`;
+    }).join('');
+  }
+  renderMyTeamsList();
+
+  function renderTeamPicker(){
+    const mine = getMyTeams();
+    const el = document.getElementById('teamPickerList');
+    el.innerHTML = TEAM_CATALOG.map(t=>{
+      const on = mine.includes(t.name);
+      return `<div class="teampick-row ${on?'on':''}" data-name="${t.name}">
+        <span class="dot-icon">${t.icon}</span>
+        <span style="flex:1;">${t.name}</span>
+        <span class="teampick-check">${on ? '&#10003; Added' : '+ Add'}</span>
+      </div>`;
+    }).join('');
+    el.querySelectorAll('.teampick-row').forEach(row=>{
+      row.addEventListener('click', ()=>{
+        let list = getMyTeams();
+        const name = row.dataset.name;
+        list = list.includes(name) ? list.filter(n=>n!==name) : [...list, name];
+        saveMyTeams(list);
+        renderMyTeamsList();
+        renderTeamPicker();
+      });
+    });
+  }
+  document.getElementById('myTeamsEditBtn').addEventListener('click', ()=>{
+    renderTeamPicker();
+    document.getElementById('teamPickerOverlay').style.display = 'flex';
+  });
+  document.getElementById('teamPickerClose').addEventListener('click', ()=>{
+    document.getElementById('teamPickerOverlay').style.display = 'none';
+  });
+  document.getElementById('teamPickerOverlay').addEventListener('click', (ev)=>{
+    if(ev.target.id === 'teamPickerOverlay') document.getElementById('teamPickerOverlay').style.display = 'none';
   });
 
   const matchList = document.getElementById('matchList');
@@ -1464,12 +1556,10 @@
 
     statusEl.className = 'datastatus ok';
     statusText.textContent = `Live — ESPN · ${live.length} live now`;
-    liveCountEl.textContent = live.length
-      ? `${live.length} live match${live.length>1?'es':''} across ${LEAGUES.length} leagues`
-      : `No live games right now — showing next scheduled matches`;
 
     const liveCounts = {};
     LEAGUES.forEach(lg=>{ liveCounts[lg.label] = live.filter(e=>e.league === lg.label).length; });
+    window.leagueLiveCounts = liveCounts;
     renderLeagueSidebar(liveCounts);
   }
 
@@ -1986,20 +2076,6 @@
         <div class="standingrow headrow"><div></div><div>${item.comp || 'Competition'}</div><div>P</div><div>GD</div><div>Pts</div></div>
         ${rows}
       `;
-    }
-
-    else if(currentDetailTab === 'news'){
-      const cards = newsItems.slice(0, 4).map((n,i)=>`<div class="newscard" data-idx="${i}">
-        <div class="newsthumb">${artSVG(n.art)}<div class="tag">${n.tag}</div></div>
-        <div class="newsbody">${n.title}<span class="time">${n.time}</span></div>
-      </div>`).join('');
-      meta.innerHTML = `
-        <div class="sectiontitle">Related News</div>
-        <div class="newsgrid" style="padding:14px 0 0;">${cards}</div>
-      `;
-      meta.querySelectorAll('.newscard').forEach(card=>{
-        card.addEventListener('click', ()=> openArticle(+card.dataset.idx));
-      });
     }
   }
 
