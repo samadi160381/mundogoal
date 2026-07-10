@@ -863,7 +863,7 @@
       <div class="sectiontitle">League Standings <span style="color:var(--muted); font-weight:400; text-transform:none; letter-spacing:0;">(demo data)</span></div>
       <div class="standingrow headrow"><div></div><div>Meridian Prime</div><div>P</div><div>GD</div><div>Pts</div></div>
       <div id="standingsList"></div>
-      <div class="viewfull">View full table &#8594;</div>
+      <div class="viewfull" id="viewFullTable" style="cursor:pointer;">View full table &#8594;</div>
     </div>
 
     <div class="card cardpad">
@@ -1422,6 +1422,19 @@
     if(badge) badge.textContent = text;
   }
 
+  let lastStandingsRows = null; // holds the full (up to 20-team) list for "View full table"
+  let standingsExpanded = false;
+
+  function renderStandingsRows(rows){
+    standingsList.innerHTML = rows.map(s=>`<div class="standingrow">
+      <div class="pos">${s.pos}</div>
+      <div class="team"><div class="team-dot" style="background:${s.color}"></div>${s.name}</div>
+      <div class="num">${s.p}</div>
+      <div class="num">${s.gd}</div>
+      <div class="pts">${s.pts}</div>
+    </div>`).join('');
+  }
+
   async function loadStandings(leagueCode, leagueLabel){
     try{
       const res = await fetch(`https://site.api.espn.com/apis/v2/sports/soccer/${leagueCode}/standings`);
@@ -1429,7 +1442,7 @@
       const data = await res.json();
       const entries = data?.children?.[0]?.standings?.entries || data?.standings?.[0]?.entries;
       if(!entries || !entries.length) throw new Error('no standings data');
-      const rows = entries.slice(0,5).map((e,i)=>{
+      const allRows = entries.map((e,i)=>{
         const st = Object.fromEntries((e.stats||[]).map(s=>[s.name, s.value]));
         const gd = st.pointDifferential ?? st.goalDifferential ?? 0;
         return {
@@ -1441,13 +1454,11 @@
           pts: st.points ?? '–',
         };
       });
-      standingsList.innerHTML = rows.map(s=>`<div class="standingrow">
-        <div class="pos">${s.pos}</div>
-        <div class="team"><div class="team-dot" style="background:${s.color}"></div>${s.name}</div>
-        <div class="num">${s.p}</div>
-        <div class="num">${s.gd}</div>
-        <div class="pts">${s.pts}</div>
-      </div>`).join('');
+      lastStandingsRows = allRows;
+      standingsExpanded = false;
+      renderStandingsRows(allRows.slice(0,5));
+      const link = document.getElementById('viewFullTable');
+      if(link) link.innerHTML = allRows.length > 5 ? 'View full table &#8594;' : '';
       setSectionLabel('standingsList', `(${leagueLabel})`);
     }catch(err){
       console.warn('Standings live fetch failed, keeping demo data', err);
@@ -1477,6 +1488,14 @@
   // Default league on first load
   loadStandings('eng.1', 'Premier League');
   loadTopScorers('eng.1', 'Premier League');
+
+  document.getElementById('viewFullTable')?.addEventListener('click', ()=>{
+    if(!lastStandingsRows) return; // real data not loaded yet
+    standingsExpanded = !standingsExpanded;
+    renderStandingsRows(standingsExpanded ? lastStandingsRows : lastStandingsRows.slice(0,5));
+    const link = document.getElementById('viewFullTable');
+    if(link) link.innerHTML = standingsExpanded ? 'Show less &#8593;' : 'View full table &#8594;';
+  });
 
   // Refresh both when a league is picked from the sidebar
   document.getElementById('leagueList').addEventListener('click', (ev)=>{
