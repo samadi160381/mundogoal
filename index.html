@@ -602,6 +602,9 @@
   .group-header{ font-size:11.5px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--sun); margin:16px 0 4px; padding-bottom:4px; border-bottom:1px solid var(--line); }
   .group-header:first-child{ margin-top:0; }
   .standings-error{ font-size:11.5px; color:var(--muted); margin-top:6px; }
+  .standings-modal{ max-width:920px; }
+  .standings-groups-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(230px,1fr)); gap:8px 32px; margin-top:14px; }
+  .standings-groups-grid .group-header{ margin-top:0; }
 
   .scorerrow{ display:flex; align-items:center; gap:10px; padding:8px 0; font-size:13px; }
   .scorerrow .rank{ width:16px; color:var(--muted); font-family:'IBM Plex Mono', monospace; font-size:12px; }
@@ -928,6 +931,17 @@
       <div class="article-title" style="font-size:18px;">My Teams</div>
       <div class="article-meta" style="border-bottom:none; margin-bottom:6px; padding-bottom:0;">Tap a team to add or remove it.</div>
       <div id="teamPickerList"></div>
+    </div>
+  </div>
+</div>
+
+<!-- FULL STANDINGS MODAL (all groups, opened via "View full table") -->
+<div id="standingsOverlay" class="article-overlay" style="display:none;">
+  <div class="article-modal standings-modal">
+    <div class="article-close" id="standingsClose">&#10005;</div>
+    <div class="article-body-wrap" style="padding-top:24px;">
+      <div class="article-title" id="standingsModalTitle" style="font-size:18px;"></div>
+      <div class="standings-groups-grid" id="standingsGroupsGrid"></div>
     </div>
   </div>
 </div>
@@ -1452,6 +1466,8 @@
     `).join('');
   }
 
+  const GROUPS_COLLAPSED_COUNT = 1; // how many groups to show in the sidebar card before "View full table"
+
   async function loadStandings(leagueCode, leagueLabel){
     try{
       const res = await fetch(`https://site.api.espn.com/apis/v2/sports/soccer/${leagueCode}/standings`);
@@ -1466,18 +1482,32 @@
         const builtGroups = groups
           .map(g => {
             const entries = g?.standings?.entries || [];
-            const rows = entries.map((e,i)=>{
-              const st = Object.fromEntries((e.stats||[]).map(s=>[s.name, s.value]));
-              const gd = st.pointDifferential ?? st.goalDifferential ?? 0;
-              return {
+            const rows = entries
+              .map((e)=>{
+                const st = Object.fromEntries((e.stats||[]).map(s=>[s.name, s.value]));
+                const gd = st.pointDifferential ?? st.goalDifferential ?? 0;
+                const pts = st.points ?? 0;
+                const gf = st.pointsFor ?? st.goalsFor ?? 0;
+                return {
+                  name: e.team?.displayName || e.team?.name || 'Unknown',
+                  color: e.team?.color ? `#${e.team.color}` : '#33D17E',
+                  p: st.gamesPlayed ?? '–',
+                  gd,
+                  pts,
+                  gf,
+                };
+              })
+              // ESPN doesn't always return entries pre-sorted by rank — sort
+              // ourselves: points, then goal difference, then goals scored.
+              .sort((a,b) => (b.pts - a.pts) || (b.gd - a.gd) || (b.gf - a.gf))
+              .map((row, i) => ({
                 pos: i+1,
-                name: e.team?.displayName || e.team?.name || 'Unknown',
-                color: e.team?.color ? `#${e.team.color}` : '#33D17E',
-                p: st.gamesPlayed ?? '–',
-                gd: gd > 0 ? `+${gd}` : `${gd}`,
-                pts: st.points ?? '–',
-              };
-            });
+                name: row.name,
+                color: row.color,
+                p: row.p,
+                gd: row.gd > 0 ? `+${row.gd}` : `${row.gd}`,
+                pts: row.pts,
+              }));
             return { name: g?.name || g?.abbreviation || 'Group', rows };
           })
           .filter(g => g.rows.length);
@@ -1486,10 +1516,10 @@
 
         lastStandingsGroups = builtGroups;
         lastStandingsRows = null;
-        renderStandingsGroups(builtGroups);
+        renderStandingsGroups(builtGroups.slice(0, GROUPS_COLLAPSED_COUNT));
         const link = document.getElementById('viewFullTable');
-        if(link) link.innerHTML = ''; // all groups are already shown in full, no toggle needed
-        setSectionLabel('standingsList', `(${leagueLabel} — all groups)`);
+        if(link) link.innerHTML = builtGroups.length > GROUPS_COLLAPSED_COUNT ? 'View full table &#8594;' : '';
+        setSectionLabel('standingsList', `(${leagueLabel})`);
         return;
       }
 
@@ -1545,21 +1575,33 @@
         setScorersError(data.error || `HTTP ${res.status}`);
         return;
       }
-      if(data?._debug?.errors && Object.keys(data._debug.errors).length){
-        // API-Football often returns HTTP 200 with an empty response[] plus
-        // an errors{} object (bad key, wrong plan, quota, etc.) — surface it.
-        console.warn('API-Football reported errors:', data._debug.errors);
-        setScorersError(Object.values(data._debug.errors).join(', '));
+
+      const tried = data?._debug?.tried || [];
+      const anyUpstreamErrors = tried.some(t => t.errors && Object.keys(t.errors).length);
+
+      if(!data.scorers || !data.scorers.length){
+        console.warn('Top scorers: no data for any season tried', tried);
+        if(anyUpstreamErrors){
+          // API-Football returned an explicit error (bad key, wrong plan, quota...)
+          const msgs = [...new Set(tried.flatMap(t => Object.values(t.errors || {})))];
+          setScorersError(msgs.join(', '));
+        } else {
+          // Every season came back empty with no error — almost always means
+          // this league/season isn't included in your API-Football plan.
+          const seasons = tried.map(t => t.season).join(', ');
+          setScorersError(`no data for ${leagueLabel} in seasons ${seasons} — check this league/season is included in your API-Football plan`);
+        }
+        return;
       }
-      if(!data.scorers || !data.scorers.length) throw new Error('no scorer data');
+
       scorersList.innerHTML = data.scorers.map((s,i)=>`<div class="scorerrow">
         <div class="rank">${i+1}</div>
         <div class="scorer-av" style="background-image:url('${s.photo}'); background-size:cover;"></div>
         <div class="name">${s.name} <span class="club">${s.club}</span></div>
         <div class="goals">${s.goals}</div>
       </div>`).join('');
-      setSectionLabel('scorersList', `(${leagueLabel})`);
-      if(!(data?._debug?.errors && Object.keys(data._debug.errors).length)) setScorersError('');
+      setSectionLabel('scorersList', `(${leagueLabel} — ${data._debug?.season ?? ''})`);
+      setScorersError('');
     }catch(err){
       console.warn('Top scorers live fetch failed, keeping demo data', err);
       setScorersError(err.message);
@@ -1570,8 +1612,33 @@
   loadStandings('eng.1', 'Premier League');
   loadTopScorers('eng.1', 'Premier League');
 
+  function openStandingsModal(){
+    if(!lastStandingsGroups) return;
+    const grid = document.getElementById('standingsGroupsGrid');
+    document.getElementById('standingsModalTitle').textContent = 'Full Standings — All Groups';
+    grid.innerHTML = lastStandingsGroups.map(g => `
+      <div>
+        <div class="group-header">${g.name}</div>
+        ${g.rows.map(rowHTML).join('')}
+      </div>
+    `).join('');
+    document.getElementById('standingsOverlay').style.display = 'flex';
+    document.getElementById('standingsOverlay').scrollTop = 0;
+  }
+  function closeStandingsModal(){
+    document.getElementById('standingsOverlay').style.display = 'none';
+  }
+  document.getElementById('standingsClose').addEventListener('click', closeStandingsModal);
+  document.getElementById('standingsOverlay').addEventListener('click', (ev)=>{
+    if(ev.target.id === 'standingsOverlay') closeStandingsModal();
+  });
+
   document.getElementById('viewFullTable')?.addEventListener('click', ()=>{
-    if(!lastStandingsRows) return; // grouped tournaments already show everything, nothing to expand
+    if(lastStandingsGroups){
+      openStandingsModal();
+      return;
+    }
+    if(!lastStandingsRows) return; // nothing loaded yet
     standingsExpanded = !standingsExpanded;
     renderStandingsRows(standingsExpanded ? lastStandingsRows : lastStandingsRows.slice(0,5));
     const link = document.getElementById('viewFullTable');
