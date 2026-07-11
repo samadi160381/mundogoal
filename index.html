@@ -917,6 +917,17 @@
   </div>
 </div>
 
+<!-- FULL STANDINGS MODAL (grouped by stage/group when applicable) -->
+<div id="standingsOverlay" class="article-overlay" style="display:none;">
+  <div class="article-modal" style="max-width:520px;">
+    <div class="article-close" id="standingsModalClose">&#10005;</div>
+    <div class="article-body-wrap" style="padding-top:24px;">
+      <div class="article-title" style="font-size:18px;" id="standingsModalTitle">Standings</div>
+      <div id="standingsModalBody" style="margin-top:14px;"></div>
+    </div>
+  </div>
+</div>
+
 <!-- FULL LEADERBOARD MODAL (Top Scorers) -->
 <div id="leaderboardOverlay" class="article-overlay" style="display:none;">
   <div class="article-modal" style="max-width:480px;">
@@ -1433,11 +1444,10 @@
     if(badge) badge.textContent = text;
   }
 
-  let lastStandingsRows = null; // holds the full (up to 20-team) list for "View full table"
-  let standingsExpanded = false;
+  let lastStandingsData = null; // { label, groups: [{ name, rows }] } — feeds the standings modal
 
-  function renderStandingsRows(rows){
-    standingsList.innerHTML = rows.map(s=>`<div class="standingrow">
+  function rowsHTML(rows){
+    return rows.map(s=>`<div class="standingrow">
       <div class="pos">${s.pos}</div>
       <div class="team"><div class="team-dot" style="background:${s.color}"></div>${s.name}</div>
       <div class="num">${s.p}</div>
@@ -1446,45 +1456,57 @@
     </div>`).join('');
   }
 
+  function toRows(entries){
+    return entries.map((e,i)=>{
+      const st = Object.fromEntries((e.stats||[]).map(s=>[s.name, s.value]));
+      const gd = st.pointDifferential ?? st.goalDifferential ?? 0;
+      return {
+        pos: i+1,
+        name: e.team?.displayName || e.team?.name || 'Unknown',
+        color: e.team?.color ? `#${e.team.color}` : '#33D17E',
+        p: st.gamesPlayed ?? '–',
+        gd: gd > 0 ? `+${gd}` : `${gd}`,
+        pts: st.points ?? '–',
+      };
+    });
+  }
+
   async function loadStandings(leagueCode, leagueLabel){
     try{
       const res = await fetch(`https://site.api.espn.com/apis/v2/sports/soccer/${leagueCode}/standings`);
       if(!res.ok) throw new Error('standings fetch failed');
       const data = await res.json();
-      const groups = data?.children;
-      let entries;
-      if(groups && groups.length > 1){
-        // Tournament with multiple groups (e.g. World Cup Group A, B, C...)
-        // Combine every group's teams into one list instead of just the first.
-        entries = groups.flatMap(g => (g?.standings?.entries || []).map(e => ({
-          ...e, groupName: g?.name || g?.abbreviation || ''
-        })));
+      const groupsRaw = data?.children;
+
+      let groups;
+      if(groupsRaw && groupsRaw.length > 1){
+        // Tournament with multiple groups (e.g. World Cup Group A, B, C...) —
+        // keep each group as its own table instead of merging them.
+        groups = groupsRaw
+          .map(g => ({ name: g?.name || g?.abbreviation || '', rows: toRows(g?.standings?.entries || []) }))
+          .filter(g => g.rows.length);
       } else {
-        entries = data?.children?.[0]?.standings?.entries || data?.standings?.[0]?.entries;
+        const entries = data?.children?.[0]?.standings?.entries || data?.standings?.[0]?.entries || [];
+        groups = entries.length ? [{ name: '', rows: toRows(entries) }] : [];
       }
-      if(!entries || !entries.length) throw new Error('no standings data');
-      const allRows = entries.map((e,i)=>{
-        const st = Object.fromEntries((e.stats||[]).map(s=>[s.name, s.value]));
-        const gd = st.pointDifferential ?? st.goalDifferential ?? 0;
-        const groupTag = e.groupName ? ` <span style="color:var(--muted); font-weight:400;">(${e.groupName})</span>` : '';
-        return {
-          pos: i+1,
-          name: (e.team?.displayName || e.team?.name || 'Unknown') + groupTag,
-          color: e.team?.color ? `#${e.team.color}` : '#33D17E',
-          p: st.gamesPlayed ?? '–',
-          gd: gd > 0 ? `+${gd}` : `${gd}`,
-          pts: st.points ?? '–',
-        };
-      });
-      lastStandingsRows = allRows;
-      standingsExpanded = false;
-      renderStandingsRows(allRows.slice(0,5));
+      if(!groups.length) throw new Error('no standings data');
+
+      lastStandingsData = { label: leagueLabel, groups };
+      // Sidebar preview: first group's rows (or first 5 if it's one big table).
+      renderSidebarStandings();
       const link = document.getElementById('viewFullTable');
-      if(link) link.innerHTML = allRows.length > 5 ? 'View full table &#8594;' : '';
+      const totalTeams = groups.reduce((n,g)=>n+g.rows.length, 0);
+      if(link) link.innerHTML = totalTeams > groups[0].rows.slice(0,5).length ? 'View full table &#8594;' : '';
       setSectionLabel('standingsList', `(${leagueLabel})`);
     }catch(err){
       console.warn('Standings live fetch failed, keeping demo data', err);
     }
+  }
+
+  function renderSidebarStandings(){
+    if(!lastStandingsData) return;
+    const first = lastStandingsData.groups[0];
+    standingsList.innerHTML = rowsHTML(first.rows.slice(0,5));
   }
 
   let lastScorersData = null; // { label, list } — full list for the leaderboard modal
@@ -1498,7 +1520,7 @@
       const data = await res.json();
       if(!data.scorers || !data.scorers.length) throw new Error('no scorer data');
       lastScorersData = { label: leagueLabel, list: data.scorers };
-      scorersList.innerHTML = data.scorers.slice(0,5).map((s,i)=>`<div class="scorerrow">
+      scorersList.innerHTML = data.scorers.slice(0,10).map((s,i)=>`<div class="scorerrow">
         <div class="rank">${i+1}</div>
         <div class="scorer-av" style="background-image:url('${s.photo}'); background-size:cover;"></div>
         <div class="name">${s.name} <span class="club">${s.club}</span></div>
@@ -1514,12 +1536,24 @@
   loadStandings('eng.1', 'Premier League');
   loadTopScorers('eng.1', 'Premier League');
 
+  function closeStandingsModal(){ document.getElementById('standingsOverlay').style.display = 'none'; }
   document.getElementById('viewFullTable')?.addEventListener('click', ()=>{
-    if(!lastStandingsRows) return; // real data not loaded yet
-    standingsExpanded = !standingsExpanded;
-    renderStandingsRows(standingsExpanded ? lastStandingsRows : lastStandingsRows.slice(0,5));
-    const link = document.getElementById('viewFullTable');
-    if(link) link.innerHTML = standingsExpanded ? 'Show less &#8593;' : 'View full table &#8594;';
+    if(!lastStandingsData) return; // real data not loaded yet
+    document.getElementById('standingsModalTitle').textContent = `Standings — ${lastStandingsData.label}`;
+    const headrow = `<div class="standingrow headrow"><div></div><div>Team</div><div>P</div><div>GD</div><div>Pts</div></div>`;
+    document.getElementById('standingsModalBody').innerHTML = lastStandingsData.groups.map(g => `
+      <div style="margin-bottom:22px;">
+        ${g.name ? `<div style="font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; color:var(--muted); margin-bottom:8px;">${g.name}</div>` : ''}
+        ${headrow}
+        ${rowsHTML(g.rows)}
+      </div>`).join('');
+    const overlay = document.getElementById('standingsOverlay');
+    overlay.style.display = 'flex';
+    overlay.scrollTop = 0;
+  });
+  document.getElementById('standingsModalClose')?.addEventListener('click', closeStandingsModal);
+  document.getElementById('standingsOverlay')?.addEventListener('click', (ev)=>{
+    if(ev.target.id === 'standingsOverlay') closeStandingsModal();
   });
 
   function closeLeaderboard(){ document.getElementById('leaderboardOverlay').style.display = 'none'; }
@@ -1527,10 +1561,12 @@
     if(!lastScorersData) return; // real data not loaded yet
     document.getElementById('leaderboardTitle').textContent = `Top Scorers — ${lastScorersData.label}`;
     document.getElementById('leaderboardList').innerHTML = lastScorersData.list.map((s,i)=>`
-      <div class="scorerrow" style="padding:10px 0; border-bottom:1px solid var(--line);">
+      <div class="scorerrow" style="padding:10px 0; border-bottom:1px solid var(--line); align-items:center;">
         <div class="rank">${i+1}</div>
         <div class="scorer-av" style="background-image:url('${s.photo}'); background-size:cover;"></div>
-        <div class="name">${s.name} <span class="club">${s.club}</span></div>
+        <div class="name">${s.name} <span class="club">${s.club}</span>
+          <div style="font-size:11px; color:var(--muted); font-weight:400;">${s.assists ? `${s.assists} assist${s.assists===1?'':'s'}` : ''}${s.assists && s.penaltyGoals ? ' · ' : ''}${s.penaltyGoals ? `${s.penaltyGoals} penalty goal${s.penaltyGoals===1?'':'s'}` : ''}</div>
+        </div>
         <div class="goals">${s.goals}</div>
       </div>`).join('');
     const overlay = document.getElementById('leaderboardOverlay');
