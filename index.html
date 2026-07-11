@@ -1440,14 +1440,25 @@
       const res = await fetch(`https://site.api.espn.com/apis/v2/sports/soccer/${leagueCode}/standings`);
       if(!res.ok) throw new Error('standings fetch failed');
       const data = await res.json();
-      const entries = data?.children?.[0]?.standings?.entries || data?.standings?.[0]?.entries;
+      const groups = data?.children;
+      let entries;
+      if(groups && groups.length > 1){
+        // Tournament with multiple groups (e.g. World Cup Group A, B, C...)
+        // Combine every group's teams into one list instead of just the first.
+        entries = groups.flatMap(g => (g?.standings?.entries || []).map(e => ({
+          ...e, groupName: g?.name || g?.abbreviation || ''
+        })));
+      } else {
+        entries = data?.children?.[0]?.standings?.entries || data?.standings?.[0]?.entries;
+      }
       if(!entries || !entries.length) throw new Error('no standings data');
       const allRows = entries.map((e,i)=>{
         const st = Object.fromEntries((e.stats||[]).map(s=>[s.name, s.value]));
         const gd = st.pointDifferential ?? st.goalDifferential ?? 0;
+        const groupTag = e.groupName ? ` <span style="color:var(--muted); font-weight:400;">(${e.groupName})</span>` : '';
         return {
           pos: i+1,
-          name: e.team?.displayName || e.team?.name || 'Unknown',
+          name: (e.team?.displayName || e.team?.name || 'Unknown') + groupTag,
           color: e.team?.color ? `#${e.team.color}` : '#33D17E',
           p: st.gamesPlayed ?? '–',
           gd: gd > 0 ? `+${gd}` : `${gd}`,
