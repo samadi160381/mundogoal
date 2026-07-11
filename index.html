@@ -919,7 +919,7 @@
 
 <!-- FULL STANDINGS MODAL (grouped by stage/group when applicable) -->
 <div id="standingsOverlay" class="article-overlay" style="display:none;">
-  <div class="article-modal" style="max-width:520px;">
+  <div class="article-modal" style="max-width:680px;">
     <div class="article-close" id="standingsModalClose">&#10005;</div>
     <div class="article-body-wrap" style="padding-top:24px;">
       <div class="article-title" style="font-size:18px;" id="standingsModalTitle">Standings</div>
@@ -1437,6 +1437,9 @@
     'fifa.world': 1, 'uefa.champions': 2, 'eng.1': 39, 'esp.1': 140,
     'ita.1': 135, 'ger.1': 78, 'fra.1': 61, 'uefa.europa_qual': 3,
   };
+  // The World Cup only happens every 4 years — 2023 has no World Cup season,
+  // so it needs its own override within the free-trial's 2022-2024 window.
+  const API_FOOTBALL_LEAGUE_SEASONS = { 1: 2022 };
 
   function setSectionLabel(containerId, text){
     const card = document.getElementById(containerId)?.closest('.card');
@@ -1514,8 +1517,11 @@
   async function loadTopScorers(leagueCode, leagueLabel){
     const apiId = API_FOOTBALL_LEAGUE_IDS[leagueCode];
     if(!apiId) return; // no API-Football mapping for this league — leave demo data
+    const season = API_FOOTBALL_LEAGUE_SEASONS[apiId] || 2023;
+    lastScorersData = null; // clear stale data immediately so an old league can't linger on screen
+    scorersList.innerHTML = `<div style="padding:10px 0; color:var(--muted); font-size:13px;">Loading…</div>`;
     try{
-      const res = await fetch(`/api/scorers?league=${apiId}`);
+      const res = await fetch(`/api/scorers?league=${apiId}&season=${season}`);
       if(!res.ok) throw new Error('scorers fetch failed');
       const data = await res.json();
       if(!data.scorers || !data.scorers.length) throw new Error('no scorer data');
@@ -1540,13 +1546,17 @@
   document.getElementById('viewFullTable')?.addEventListener('click', ()=>{
     if(!lastStandingsData) return; // real data not loaded yet
     document.getElementById('standingsModalTitle').textContent = `Standings — ${lastStandingsData.label}`;
-    const headrow = `<div class="standingrow headrow"><div></div><div>Team</div><div>P</div><div>GD</div><div>Pts</div></div>`;
-    document.getElementById('standingsModalBody').innerHTML = lastStandingsData.groups.map(g => `
-      <div style="margin-bottom:22px;">
-        ${g.name ? `<div style="font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; color:var(--muted); margin-bottom:8px;">${g.name}</div>` : ''}
-        ${headrow}
+    const multiGroup = lastStandingsData.groups.length > 1;
+    const miniHeadrow = `<div class="standingrow headrow" style="font-size:10px;"><div></div><div>Team</div><div>P</div><div>GD</div><div>Pts</div></div>`;
+    const groupCard = (g) => `
+      <div style="border:1px solid var(--line); border-radius:12px; padding:14px; background:var(--surface-2);">
+        ${g.name ? `<div style="font-size:11.5px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; color:var(--pitch); margin-bottom:8px;">${g.name}</div>` : ''}
+        ${miniHeadrow}
         ${rowsHTML(g.rows)}
-      </div>`).join('');
+      </div>`;
+    document.getElementById('standingsModalBody').innerHTML = multiGroup
+      ? `<div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">${lastStandingsData.groups.map(groupCard).join('')}</div>`
+      : lastStandingsData.groups.map(groupCard).join('');
     const overlay = document.getElementById('standingsOverlay');
     overlay.style.display = 'flex';
     overlay.scrollTop = 0;
